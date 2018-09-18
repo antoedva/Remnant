@@ -20,13 +20,18 @@ protected:
 public:
 	ADimensionTrigger();
 
+	FVector GetNewPosition() const;
+
 	// It's important that the linked trigger is the exact same size as this trigger
 	UPROPERTY(EditAnywhere, Category = "Triggers")
 	ATriggerBox* linked_trigger_;
-	
+
+private:
 	UFUNCTION()
 	void OnOverlapBegin(AActor* overlapped_actor, AActor* other_actor);
 
 	UFUNCTION()
 	void OnOverlapEnd(AActor* overlapped_actor, AActor* other_actor);
+
+	AActor* actor_;
 };
