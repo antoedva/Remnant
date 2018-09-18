@@ -16,5 +16,4 @@ class REMNANT_API ARemnantGameModeBase : public AGameModeBase
 	
 	
 	
-	
 };
