@@ -9,6 +9,8 @@
 #include "GameFramework/InputSettings.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
+#include "Traverser/TraverseComponent.h"
+
 AFP_Character::AFP_Character()
 {
 	// Set up Capsule
@@ -25,6 +27,8 @@ AFP_Character::AFP_Character()
 
 	// Set up Movement Component
 	movement_component_ = GetCharacterMovement();
+	
+	traverse_component_ = CreateDefaultSubobject<UTraverseComponent>(TEXT("TraverseComponent"));
 }
 
 void AFP_Character::BeginPlay()
@@ -37,6 +41,7 @@ void AFP_Character::SetupPlayerInputComponent(UInputComponent* input_component)
 {
 	check(input_component);
 
+	// Common movement
 	input_component->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	input_component->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 	input_component->BindAction("CrouchHold", IE_Pressed, this, &AFP_Character::CharacterCrouch);
@@ -47,6 +52,9 @@ void AFP_Character::SetupPlayerInputComponent(UInputComponent* input_component)
 	input_component->BindAxis("MoveRight", this, &AFP_Character::MoveRight);
 	input_component->BindAxis("Turn", this, &APawn::AddControllerYawInput);
 	input_component->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+
+	// Specific input
+	input_component->BindAction("Traverse", IE_Pressed, this, &AFP_Character::TraverseDimension);
 }
 
 void AFP_Character::MoveForward(float value)
@@ -76,5 +84,10 @@ void AFP_Character::CharacterUnCrouch()
 void AFP_Character::CharacterCrouchToggle()
 {
 	movement_component_->IsCrouching() ? movement_component_->Crouch() : movement_component_->UnCrouch();
+}
+
+void AFP_Character::TraverseDimension()
+{
+	traverse_component_->TraverseDimension();
 }
 

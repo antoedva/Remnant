@@ -9,6 +9,7 @@
 class UInputComponent;
 class UCameraComponent;
 class UCharacterMovementComponent;
+class UTraverseComponent;
 
 UCLASS(config=Game)
 class REMNANT_API AFP_Character : public ACharacter
@@ -20,22 +21,21 @@ public:
 
 	FORCEINLINE UCameraComponent* GetCameraComponent() const { return camera_component_; }
 
-protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* input_component) override;
 
-	/// Input Callbacks
-	// Move forward / backwards
+protected:
 	void MoveForward(float value);
-	// Move left / right
 	void MoveRight(float value);
 	void CharacterCrouch();
 	void CharacterUnCrouch();
 	void CharacterCrouchToggle();
+	void TraverseDimension();
 
 private:	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* camera_component_;
 
 	UCharacterMovementComponent* movement_component_;
+	UTraverseComponent* traverse_component_;
 };

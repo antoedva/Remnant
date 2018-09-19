@@ -15,7 +15,7 @@ class REMNANT_API ADimensionTrigger : public ATriggerBox
 	GENERATED_BODY()
 	
 protected:
-	virtual void BeginPlay() override;
+	void BeginPlay() override;
 
 public:
 	ADimensionTrigger();

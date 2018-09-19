@@ -6,8 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "TraverseComponent.generated.h"
 
-//class AFP_Character;
-//class ADimensionTrigger;
+class AFP_Character;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class REMNANT_API UTraverseComponent : public UActorComponent
@@ -24,6 +23,5 @@ protected:
 	virtual void TickComponent(float delta_time, ELevelTick tick_type, FActorComponentTickFunction* this_tick_function) override;
 	
 private:
-	//AFP_Character* player_;
-	//ADimensionTrigger* trigger_;
+	AFP_Character* player_;
 };
