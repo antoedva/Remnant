@@ -10,6 +10,10 @@
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include "Traverser/TraverseComponent.h"
+#include "Traverser/DimensionTrigger.h"
+#include "TimeClock/TimeCircle.h"
+
+#include "UObject/ConstructorHelpers.h"
 
 AFP_Character::AFP_Character()
 {
@@ -18,23 +22,14 @@ AFP_Character::AFP_Character()
 	const float capsule_height = 96.0f;
 	GetCapsuleComponent()->InitCapsuleSize(capsule_radius, capsule_height);
 
-	// Set up Camera Component
-	const FVector camera_offset(-39.56f, 1.75f, 64.0f);
-
-	camera_component_ = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
-	camera_component_->SetupAttachment(GetCapsuleComponent());
-	camera_component_->RelativeLocation = camera_offset;
-
-	// Set up Movement Component
 	movement_component_ = GetCharacterMovement();
-	
 	traverse_component_ = CreateDefaultSubobject<UTraverseComponent>(TEXT("TraverseComponent"));
 }
 
 void AFP_Character::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 void AFP_Character::SetupPlayerInputComponent(UInputComponent* input_component)
@@ -55,6 +50,9 @@ void AFP_Character::SetupPlayerInputComponent(UInputComponent* input_component)
 
 	// Specific input
 	input_component->BindAction("Traverse", IE_Pressed, this, &AFP_Character::TraverseDimension);
+	input_component->BindAction("PlaceClock", IE_Pressed, this, &AFP_Character::PlaceClock);
+	input_component->BindAction("PickupClock", IE_Pressed, this, &AFP_Character::PickupClock); // this should preferably be regular pickup input 
+
 }
 
 void AFP_Character::MoveForward(float value)
@@ -91,3 +89,12 @@ void AFP_Character::TraverseDimension()
 	traverse_component_->TraverseDimension();
 }
 
+void AFP_Character::PlaceClock()
+{
+	traverse_component_->SetTraverseAllowed(false);
+}
+
+void AFP_Character::PickupClock()
+{
+	traverse_component_->SetTraverseAllowed(true);
+}

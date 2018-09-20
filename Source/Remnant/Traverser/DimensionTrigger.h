@@ -22,6 +22,9 @@ public:
 
 	FVector GetNewPosition() const;
 
+	// Can be used to override the current actor inside the trigger
+	void SetActor(AActor* actor) { actor_ = actor; }
+
 	// It's important that the linked trigger is the exact same size as this trigger
 	UPROPERTY(EditAnywhere, Category = "Triggers")
 	ATriggerBox* linked_trigger_;

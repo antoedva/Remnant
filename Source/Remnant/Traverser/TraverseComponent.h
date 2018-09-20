@@ -17,11 +17,12 @@ public:
 	UTraverseComponent();
 
 	void TraverseDimension();
+	void SetTraverseAllowed(bool state) { traverse_allowed_ = state; }
+	bool GetTraverseAllowed() const { return traverse_allowed_; }
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void TickComponent(float delta_time, ELevelTick tick_type, FActorComponentTickFunction* this_tick_function) override;
 	
 private:
-	AFP_Character* player_;
+	bool traverse_allowed_;
 };
