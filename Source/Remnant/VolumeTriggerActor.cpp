@@ -1,17 +1,10 @@
 #include "VolumeTriggerActor.h"
 
-#include "Components/BoxComponent.h"
-#include "DrawDebugHelpers.h"
+#include "TriggerReceiver.h"
 
 AVolumeTriggerActor::AVolumeTriggerActor()
-: ATriggerActor()
 {
-	UBoxComponent* box = CreateDefaultSubobject<UBoxComponent>(TEXT("RootComponent"));
-	RootComponent = box;
-	box->InitBoxExtent(boxDimensions);
-	box->SetGenerateOverlapEvents(true);
-	box->OnComponentBeginOverlap.AddDynamic(this, &AVolumeTriggerActor::OnOverlapBegin);
-	box->OnComponentEndOverlap.AddDynamic(this, &AVolumeTriggerActor::OnOverlapEnd);
+	OnActorBeginOverlap.AddDynamic(this, &AVolumeTriggerActor::OnOverlapBegin);
 }
 
 AVolumeTriggerActor::~AVolumeTriggerActor()
@@ -19,20 +12,24 @@ AVolumeTriggerActor::~AVolumeTriggerActor()
 
 }
 
-void AVolumeTriggerActor::BeginPlay()
+void AVolumeTriggerActor::TriggerAllRecievers()
 {
-	Super::BeginPlay();
-
-	DrawDebugBox(GetWorld(), GetActorLocation(), GetComponentsBoundingBox().GetExtent(), FColor::Green, true, -1, 0, 5);
-	UE_LOG(LogTemp, Warning, TEXT("I hate Unreal Engine."));
+	for (ATriggerReceiver* receiver : triggerReceivers)
+	{
+		if (receiver)
+		{
+			receiver->TriggerBlueprint();
+		}
+	}
 }
 
-void AVolumeTriggerActor::OnOverlapBegin(UPrimitiveComponent* overlappedComponent, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyId, bool bFromSweep, const FHitResult& sweepResult)
+void AVolumeTriggerActor::OnOverlapBegin(AActor* overlappedActor, AActor* otherActor)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Actor entered trigger."));
-}
-
-void AVolumeTriggerActor::OnOverlapEnd(UPrimitiveComponent* overlappedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex)
-{
-	UE_LOG(LogTemp, Warning, TEXT("Actor left trigger."));
+	if (actorThatTriggers)
+	{
+		if (otherActor && otherActor == actorThatTriggers)
+		{
+			TriggerAllRecievers();
+		}
+	}
 }
