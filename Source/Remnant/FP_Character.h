@@ -22,14 +22,9 @@ class REMNANT_API AFP_Character : public ACharacter
 public:
 	AFP_Character();
 
-	//FORCEINLINE UCameraComponent* GetCameraComponent() const { return camera_component_; }
-
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* input_component) override;
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Class Types")
-		//UClass* class_;
-	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera"/*, meta = (AllowPrivateAccess = "true")*/)
-		//UCameraComponent* camera_component_;
+	
 protected:
 	void MoveForward(float value);
 	void MoveRight(float value);
@@ -44,5 +39,4 @@ private:
 
 	UCharacterMovementComponent* movement_component_;
 	UTraverseComponent* traverse_component_;
-	//TSubclassOf<ATimeCircle> time_circle_;
 };

@@ -29,7 +29,6 @@ AFP_Character::AFP_Character()
 void AFP_Character::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
 void AFP_Character::SetupPlayerInputComponent(UInputComponent* input_component)

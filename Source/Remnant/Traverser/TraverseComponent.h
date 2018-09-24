@@ -7,8 +7,10 @@
 #include "TraverseComponent.generated.h"
 
 class AFP_Character;
+class UWorld;
+class ULevelStreaming;
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS()
 class REMNANT_API UTraverseComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -17,12 +19,20 @@ public:
 	UTraverseComponent();
 
 	void TraverseDimension();
-	void SetTraverseAllowed(bool state) { traverse_allowed_ = state; }
+	void SetTraverseAllowed(const bool state) { traverse_allowed_ = state; }
 	bool GetTraverseAllowed() const { return traverse_allowed_; }
 
 protected:
 	virtual void BeginPlay() override;
 	
 private:
+	enum Dimension
+	{
+		PAST,
+		PRESENT
+	} dimension_;
+
 	bool traverse_allowed_;
+
+	void ToggleObjectVisibility(AActor* actor);
 };
