@@ -13,8 +13,9 @@ class UInputComponent;
 class UCameraComponent;
 class UCharacterMovementComponent;
 class UTraverseComponent;
+class UClockComponent;
 
-UCLASS(config=Game)
+UCLASS(config = Game)
 class REMNANT_API AFP_Character : public ACharacter
 {
 	GENERATED_BODY()
@@ -22,9 +23,12 @@ class REMNANT_API AFP_Character : public ACharacter
 public:
 	AFP_Character();
 
-	virtual void BeginPlay() override;
-	virtual void SetupPlayerInputComponent(UInputComponent* input_component) override;
-	
+	void BeginPlay() override;
+	void SetupPlayerInputComponent(UInputComponent* input_component) override;
+
+	UCameraComponent* GetCameraComponent() const { return camera_component_; }
+
+
 protected:
 	void MoveForward(float value);
 	void MoveRight(float value);
@@ -35,8 +39,10 @@ protected:
 	void PlaceClock();
 	void PickupClock();
 
-private:	
-
+private:
+	UCameraComponent* camera_component_;
 	UCharacterMovementComponent* movement_component_;
 	UTraverseComponent* traverse_component_;
+	UPROPERTY(EditDefaultsOnly, Category = "Clock")
+	UClockComponent* clock_component_;
 };
