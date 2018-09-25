@@ -20,7 +20,7 @@ AFP_Character::AFP_Character()
 	const float capsule_radius = 55.0f;
 	const float capsule_height = 96.0f;
 	GetCapsuleComponent()->InitCapsuleSize(capsule_radius, capsule_height);
-
+	
 	// Setup camera component
 	const FVector camera_offset(-39.56f, 1.75f, 64.f);
 	camera_component_ = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
