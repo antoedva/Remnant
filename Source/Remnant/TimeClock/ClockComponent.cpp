@@ -76,12 +76,13 @@ bool UClockComponent::GetSpawnLocation(OUT FVector& location) const
 {
 	// TODO: Make sure to only trace against floor
 	const float distance = 500.0f;
-	const FVector trace_start = player_->GetCameraComponent()->GetComponentLocation();
-	const FVector trace_end = trace_start + (player_->GetCapsuleComponent()->GetForwardVector() * distance);
+	const UCameraComponent* camera = player_->GetCameraComponent();
+	const FVector trace_start = camera->GetComponentLocation();
+	const FVector trace_end = trace_start + (camera->GetForwardVector() * distance);
 
 	FHitResult result;
 	const FCollisionQueryParams query_params(TEXT(""), true, player_);
-	DrawDebugLine(GetWorld(), trace_start, trace_end, FColor(255, 0, 0), true, 5.0f, 0.0f, 5.0f);
+	DrawDebugLine(GetWorld(), trace_start, trace_end, FColor(255, 0, 0), true, 5.0f, 0.0f, 2.0f);
 
 	if (!GetWorld()->LineTraceSingleByChannel(result, trace_start, trace_end, ECC_GameTraceChannel1, query_params))
 		return false;

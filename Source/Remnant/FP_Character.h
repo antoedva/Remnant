@@ -26,7 +26,6 @@ public:
 
 	UCameraComponent* GetCameraComponent() const { return camera_component_; }
 
-
 protected:
 	void MoveForward(float value);
 	void MoveRight(float value);
