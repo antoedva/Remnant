@@ -93,19 +93,12 @@ void UTraverseComponent::BeginPlay()
 				for (auto* component : components)
 				{
 					UPrimitiveComponent* primitive_comp = Cast<UPrimitiveComponent>(component);
-					if(!primitive_comp)
+					if (!primitive_comp)
 						continue;
-
-					// Components with the tag "Overlap" should ALWAYS be QueryOnly
-					if (component->ComponentHasTag("Overlap"))
-					{
-						primitive_comp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-						continue;
-					}
 
 					if (actor->ActorHasTag("Past"))
 					{
-						primitive_comp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+						primitive_comp->SetCollisionEnabled(component->ComponentHasTag("Overlap") ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 						actor->SetActorHiddenInGame(true);
 					}
 
@@ -135,20 +128,13 @@ void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
 		if (!primitive_comp)
 			continue;
 
-		// Components with the tag "Overlap" should ALWAYS be QueryOnly
-		if (!component->ComponentHasTag("Overlap"))
-		{
-			primitive_comp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-			continue;
-		}
-
 		switch (dimension_)
 		{
 		case PAST:
 		{
 			if (actor->ActorHasTag("Past"))
 			{
-				primitive_comp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				primitive_comp->SetCollisionEnabled(component->ComponentHasTag("Overlap") ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 				actor->SetActorHiddenInGame(true);
 			}
 			else if (actor->ActorHasTag("Present"))
@@ -167,7 +153,7 @@ void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
 			}
 			else if (actor->ActorHasTag("Present"))
 			{
-				primitive_comp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				primitive_comp->SetCollisionEnabled(component->ComponentHasTag("Overlap") ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
 				actor->SetActorHiddenInGame(true);
 			}
 			break;
