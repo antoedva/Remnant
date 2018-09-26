@@ -5,8 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 
-#include "TimeClock/TimeCircle.h"
-
 #include "FP_Character.generated.h"
 
 class UInputComponent;
@@ -28,7 +26,6 @@ public:
 
 	UCameraComponent* GetCameraComponent() const { return camera_component_; }
 
-
 protected:
 	void MoveForward(float value);
 	void MoveRight(float value);
@@ -40,6 +37,7 @@ protected:
 	void PickupClock();
 
 private:
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	UCameraComponent* camera_component_;
 	UCharacterMovementComponent* movement_component_;
 	UTraverseComponent* traverse_component_;
