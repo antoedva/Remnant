@@ -86,8 +86,8 @@ void UTraverseComponent::BeginPlay()
 				if (!actor->HasValidRootComponent())
 					continue;
 
-				// Get all components in the actor, max 3 (root, item, overlap)
-				TArray<UActorComponent*, TInlineAllocator<3>> components;
+				// Get all components in the actor, max 2 (root, item)
+				TArray<UActorComponent*, TInlineAllocator<2>> components;
 				actor->GetComponents(components);
 
 				for (auto* component : components)
@@ -98,15 +98,17 @@ void UTraverseComponent::BeginPlay()
 
 					if (actor->ActorHasTag("Past"))
 					{
-						primitive_comp->SetCollisionEnabled(component->ComponentHasTag("Overlap") ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+						primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
 						actor->SetActorHiddenInGame(true);
 					}
 
 					else if (actor->ActorHasTag("Present"))
 					{
-						primitive_comp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); // change this to physics only if we dont want to place clock on objects
+						primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
 						actor->SetActorHiddenInGame(false);
 					}
+
+					component->OnActorEnableCollisionChanged(); // I don't know if I need this
 				}
 			}
 		}
@@ -118,10 +120,13 @@ void UTraverseComponent::BeginPlay()
 
 void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
 {
-	// Get all components in the actor, max 3 (root, item, overlap)
-	TArray<UActorComponent*, TInlineAllocator<3>> components;
+	// Get all components in the actor, max 2 (root, item)
+	TArray<UActorComponent*, TInlineAllocator<2>> components;
 	actor->GetComponents(components);
 
+	// We will call SetActorHiddenInGame several times if
+	// If we have more than 1 component (excluding root), and the components have several items with the same tag
+	// That is okay
 	for (auto* component : components)
 	{
 		UPrimitiveComponent* primitive_comp = Cast<UPrimitiveComponent>(component);
@@ -134,12 +139,12 @@ void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
 		{
 			if (actor->ActorHasTag("Past"))
 			{
-				primitive_comp->SetCollisionEnabled(component->ComponentHasTag("Overlap") ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+				primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
 				actor->SetActorHiddenInGame(true);
 			}
 			else if (actor->ActorHasTag("Present"))
 			{
-				primitive_comp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+				primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
 				actor->SetActorHiddenInGame(false);
 			}
 			break;
@@ -148,12 +153,12 @@ void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
 		{
 			if (actor->ActorHasTag("Past"))
 			{
-				primitive_comp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+				primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
 				actor->SetActorHiddenInGame(false);
 			}
 			else if (actor->ActorHasTag("Present"))
 			{
-				primitive_comp->SetCollisionEnabled(component->ComponentHasTag("Overlap") ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+				primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
 				actor->SetActorHiddenInGame(true);
 			}
 			break;
@@ -161,5 +166,7 @@ void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
 		default:
 			break;
 		}
+
+		component->OnActorEnableCollisionChanged();
 	}
 }

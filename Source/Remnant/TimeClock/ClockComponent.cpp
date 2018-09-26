@@ -30,15 +30,9 @@ bool UClockComponent::ThrowClock()
 
 	clock_ = GetWorld()->SpawnActor<AActor>(clock_bp_, location, FRotator(0.0f));
 
-	TSet<AActor*> actors = GetOverlappingActors();
-	for (auto* actor : actors)
-	{
-		if (!actor)
-			return false;
-
-		// Show the actors
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *actor->GetName());
-	}
+	// Save our overlapped actors so we know what to remove later on
+	current_actors_in_clock_ = GetOverlappingActors();
+	RenderObjectsInClock();
 
 	return true;
 }
@@ -55,10 +49,15 @@ bool UClockComponent::PickUpClock()
 	if (result.Actor != clock_)
 		return false;
 
+	StopRenderingObjectsInClock();
+
 	if (!GetWorld()->DestroyActor(clock_))
 		return false;
 
 	clock_ = nullptr;
+
+	// Clear the set of actors
+	current_actors_in_clock_.Empty();
 
 	return true;
 }
@@ -105,6 +104,52 @@ bool UClockComponent::LineTrace(OUT FHitResult & result) const
 	return true;
 }
 
+void UClockComponent::RenderObjectsInClock()
+{
+	for (auto* actor : current_actors_in_clock_)
+	{
+		if (!actor)
+			return;
+
+		actor->SetActorHiddenInGame(false);
+
+		TArray<UActorComponent*, TInlineAllocator<2>> components;
+		actor->GetComponents(components);
+
+		for (auto* component : components)
+		{
+			auto* primitive_component = Cast<UPrimitiveComponent>(component);
+			if (!primitive_component)
+				continue;
+
+			primitive_component->SetCollisionResponseToAllChannels(ECR_Block);
+		}
+	}
+}
+
+void UClockComponent::StopRenderingObjectsInClock()
+{
+	for (auto* actor : current_actors_in_clock_)
+	{
+		if (!actor)
+			return;
+
+		actor->SetActorHiddenInGame(true);
+
+		TArray<UActorComponent*, TInlineAllocator<2>> components;
+		actor->GetComponents(components);
+
+		for (auto* component : components)
+		{
+			auto* primitive_component = Cast<UPrimitiveComponent>(component);
+			if (!primitive_component)
+				continue;
+
+			primitive_component->SetCollisionResponseToAllChannels(ECR_Overlap);
+		}
+	}
+}
+
 TSet<AActor*> UClockComponent::GetOverlappingActors() const
 {
 	TSet<AActor*> overlapping_actors;
@@ -119,9 +164,24 @@ TSet<AActor*> UClockComponent::GetOverlappingActors() const
 		{
 			auto* collision = Cast<USphereComponent>(component);
 			collision->GetOverlappingActors(overlapping_actors, base_item_);
-			return overlapping_actors;
+			break;
 		}
 	}
-	return TSet<AActor*>();
+	
+	// Get all actors that are already visible
+	TSet<AActor*> actors_to_remove;
+	for (auto* actor : overlapping_actors)
+		if (!actor->bHidden)
+			actors_to_remove.Add(actor);
+
+	// Remove those actors from the actor set
+	for (auto* actor : actors_to_remove)
+		overlapping_actors.Remove(actor);
+
+	// Clear scoped sets
+	actors_to_remove.Empty();
+	clock_components.Empty();
+
+	return overlapping_actors;
 }
 
