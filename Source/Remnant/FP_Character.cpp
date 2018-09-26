@@ -10,7 +10,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include "Traverser/TraverseComponent.h"
-#include "TimeClock/ClockComponent.h"
 
 #include "UObject/ConstructorHelpers.h"
 
@@ -20,24 +19,15 @@ AFP_Character::AFP_Character()
 	const float capsule_radius = 55.0f;
 	const float capsule_height = 96.0f;
 	GetCapsuleComponent()->InitCapsuleSize(capsule_radius, capsule_height);
-	
-	// Setup camera component
-	const FVector camera_offset(-39.56f, 1.75f, 64.f);
-	camera_component_ = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
-	camera_component_->SetupAttachment(GetCapsuleComponent());
-	camera_component_->RelativeLocation = camera_offset;
 
-	// Setup movement component
 	movement_component_ = GetCharacterMovement();
-
-	// Set up specific components here
 	traverse_component_ = CreateDefaultSubobject<UTraverseComponent>(TEXT("TraverseComponent"));
-	clock_component_ = CreateDefaultSubobject<UClockComponent>(TEXT("ClockComponent"));
 }
 
 void AFP_Character::BeginPlay()
 {
 	Super::BeginPlay();
+
 }
 
 void AFP_Character::SetupPlayerInputComponent(UInputComponent* input_component)
@@ -99,16 +89,10 @@ void AFP_Character::TraverseDimension()
 
 void AFP_Character::PlaceClock()
 {
-	if (!clock_component_->ThrowClock())
-		return;
-
 	traverse_component_->SetTraverseAllowed(false);
 }
 
 void AFP_Character::PickupClock()
 {
-	if (!clock_component_->PickUpClock())
-		return;
-
 	traverse_component_->SetTraverseAllowed(true);
 }
