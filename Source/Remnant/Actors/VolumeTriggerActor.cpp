@@ -18,7 +18,11 @@ void AVolumeTriggerActor::TriggerAllRecievers()
 	{
 		if (receiver)
 		{
-			receiver->TriggerBlueprint();
+			bool result = receiver->TriggerThisReceiver();
+			if (!result)
+			{
+				UE_LOG(LogTemp, Error, TEXT("Failed to trigger this receiver in VolumeTriggerActor."));
+			}
 		}
 	}
 }
