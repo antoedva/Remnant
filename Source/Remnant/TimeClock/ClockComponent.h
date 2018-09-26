@@ -34,7 +34,7 @@ private:
 	AFP_Character* player_;
 	AActor* clock_;
 
-	void CreateClock();
 	bool GetSpawnLocation(OUT FVector& location) const;
+	bool LineTrace(OUT FHitResult& result) const;
 	TSet<AActor*> GetOverlappingActors() const;
 };
