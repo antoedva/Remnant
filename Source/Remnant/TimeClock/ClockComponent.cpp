@@ -10,6 +10,7 @@
 #include "DrawDebugHelpers.h"
 #include "Engine/LevelStreaming.h"
 #include "Engine/World.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Traverser/TraverseComponent.h"
 #include "UObject/ConstructorHelpers.h"
@@ -111,7 +112,23 @@ void UClockComponent::RenderObjectsInClock()
 		if (!actor)
 			return;
 
-		actor->SetActorHiddenInGame(false);
+		// TODO: YOURE HERE
+		// To get this to work, you have to add another overlapping TSet<> with the filter as ai or something alike
+		// Then we can get the ai and stop it, yay
+		//if (actor->ActorHasTag("Robot"))
+		//{
+		//	UE_LOG(LogTemp, Warning, TEXT("YAY"));
+		//	APawn* robot = Cast<APawn>(actor);
+		//	if (!robot)
+		//		continue;
+
+		//	UE_LOG(LogTemp, Warning, TEXT("YAY"));
+
+		//	robot->GetMovementComponent()->Deactivate();
+		//	continue;
+		//}
+
+		actor->SetActorHiddenInGame(actor->bHidden ? false : true);
 
 		TArray<UActorComponent*, TInlineAllocator<2>> components;
 		actor->GetComponents(components);
@@ -122,7 +139,7 @@ void UClockComponent::RenderObjectsInClock()
 			if (!primitive_component)
 				continue;
 
-			primitive_component->SetCollisionResponseToAllChannels(ECR_Block);
+			primitive_component->SetCollisionResponseToAllChannels(actor->bHidden ? ECR_Overlap : ECR_Block);
 		}
 	}
 }
@@ -134,7 +151,19 @@ void UClockComponent::StopRenderingObjectsInClock()
 		if (!actor)
 			return;
 
-		actor->SetActorHiddenInGame(true);
+		//if (actor->ActorHasTag("Robot"))
+		//{
+		//	APawn* robot = Cast<APawn>(actor);
+		//	if (!robot)
+		//		continue;
+
+		//	UE_LOG(LogTemp, Warning, TEXT("YAY"));
+
+		//	robot->GetMovementComponent()->Activate();
+		//	continue;
+		//}
+
+		actor->SetActorHiddenInGame(actor->bHidden ? false : true);
 
 		TArray<UActorComponent*, TInlineAllocator<2>> components;
 		actor->GetComponents(components);
@@ -145,7 +174,7 @@ void UClockComponent::StopRenderingObjectsInClock()
 			if (!primitive_component)
 				continue;
 
-			primitive_component->SetCollisionResponseToAllChannels(ECR_Overlap);
+			primitive_component->SetCollisionResponseToAllChannels(actor->bHidden ? ECR_Overlap : ECR_Block);
 		}
 	}
 }
@@ -168,18 +197,25 @@ TSet<AActor*> UClockComponent::GetOverlappingActors() const
 		}
 	}
 	
+	// Keep this if we want to change how the clock works
 	// Get all actors that are already visible
-	TSet<AActor*> actors_to_remove;
-	for (auto* actor : overlapping_actors)
-		if (!actor->bHidden)
-			actors_to_remove.Add(actor);
+	//TSet<AActor*> actors_to_remove;
+	//for (auto* actor : overlapping_actors)
+	//{
+	//	// Skip robots
+	//	if (actor->ActorHasTag("Robot"))
+	//		continue;
+
+	//	if (!actor->bHidden)
+	//		actors_to_remove.Add(actor);
+	//}
 
 	// Remove those actors from the actor set
-	for (auto* actor : actors_to_remove)
-		overlapping_actors.Remove(actor);
+	//for (auto* actor : actors_to_remove)
+		//overlapping_actors.Remove(actor);
 
 	// Clear scoped sets
-	actors_to_remove.Empty();
+	//actors_to_remove.Empty();
 	clock_components.Empty();
 
 	return overlapping_actors;
