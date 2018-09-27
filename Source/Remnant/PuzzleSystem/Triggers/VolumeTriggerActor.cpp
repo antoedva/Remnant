@@ -1,6 +1,6 @@
 #include "VolumeTriggerActor.h"
 
-#include "TriggerReceiver.h"
+#include "PuzzleSystem/TriggerReceiver.h"
 
 AVolumeTriggerActor::AVolumeTriggerActor()
 {

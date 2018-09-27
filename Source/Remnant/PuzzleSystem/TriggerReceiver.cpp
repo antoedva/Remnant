@@ -1,6 +1,6 @@
 #include "TriggerReceiver.h"
 
-#include "ActorComponents/ReceiverBlueprintLink.h"
+#include "PuzzleSystem/ReceiverBlueprintLink.h"
 
 ATriggerReceiver::ATriggerReceiver()
 {
