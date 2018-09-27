@@ -8,8 +8,10 @@
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Engine/LevelStreaming.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
+#include "Traverser/TraverseComponent.h"
 #include "UObject/ConstructorHelpers.h"
 
 UClockComponent::UClockComponent()
@@ -19,7 +21,7 @@ UClockComponent::UClockComponent()
 
 bool UClockComponent::ThrowClock()
 {
-	if (!clock_bp_ || !base_item_)
+	if (!clock_bp_ || !base_item_ || clock_)
 		return false;
 
 	FVector location(0.0f);
@@ -28,13 +30,9 @@ bool UClockComponent::ThrowClock()
 
 	clock_ = GetWorld()->SpawnActor<AActor>(clock_bp_, location, FRotator(0.0f));
 
-	TSet<AActor*> actors = GetOverlappingActors();
-	for (auto* actor : actors)
-	{
-		if (!actor)
-			return false;
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *actor->GetName());
-	}
+	// Save our overlapped actors so we know what to remove later on
+	current_actors_in_clock_ = GetOverlappingActors();
+	RenderObjectsInClock();
 
 	return true;
 }
@@ -44,11 +42,22 @@ bool UClockComponent::PickUpClock()
 	if (!clock_)
 		return false;
 
-	//FVector location(0.0f);
-	//if (!GetThrowLocation(location))
-		//return false;
+	FHitResult result;
+	if (!LineTrace(result))
+		return false;
 
-	GetWorld()->DestroyActor(clock_);
+	if (result.Actor != clock_)
+		return false;
+
+	StopRenderingObjectsInClock();
+
+	if (!GetWorld()->DestroyActor(clock_))
+		return false;
+
+	clock_ = nullptr;
+
+	// Clear the set of actors
+	current_actors_in_clock_.Empty();
 
 	return true;
 }
@@ -68,27 +77,77 @@ void UClockComponent::TickComponent(float delta_time, ELevelTick tick_type, FAct
 
 }
 
-void UClockComponent::CreateClock()
-{
-}
-
 bool UClockComponent::GetSpawnLocation(OUT FVector& location) const
 {
-	// TODO: Make sure to only trace against floor
+	FHitResult result;
+	if (!LineTrace(result))
+		return false;
+
+	location = result.ImpactPoint;
+	return true;
+}
+
+bool UClockComponent::LineTrace(OUT FHitResult & result) const
+{
+	// TODO: Make sure to only trace against floor, with some special cases
 	const float distance = 500.0f;
 	const UCameraComponent* camera = player_->GetCameraComponent();
 	const FVector trace_start = camera->GetComponentLocation();
 	const FVector trace_end = trace_start + (camera->GetForwardVector() * distance);
 
-	FHitResult result;
 	const FCollisionQueryParams query_params(TEXT(""), true, player_);
-	DrawDebugLine(GetWorld(), trace_start, trace_end, FColor(255, 0, 0), true, 5.0f, 0.0f, 2.0f);
+	DrawDebugLine(GetWorld(), trace_start, trace_end, FColor(255, 0, 0), true, 5.0f, 0.0f, 1.0f);
 
 	if (!GetWorld()->LineTraceSingleByChannel(result, trace_start, trace_end, ECC_GameTraceChannel1, query_params))
 		return false;
 
-	location = result.Actor->GetActorLocation();
 	return true;
+}
+
+void UClockComponent::RenderObjectsInClock()
+{
+	for (auto* actor : current_actors_in_clock_)
+	{
+		if (!actor)
+			return;
+
+		actor->SetActorHiddenInGame(false);
+
+		TArray<UActorComponent*, TInlineAllocator<2>> components;
+		actor->GetComponents(components);
+
+		for (auto* component : components)
+		{
+			auto* primitive_component = Cast<UPrimitiveComponent>(component);
+			if (!primitive_component)
+				continue;
+
+			primitive_component->SetCollisionResponseToAllChannels(ECR_Block);
+		}
+	}
+}
+
+void UClockComponent::StopRenderingObjectsInClock()
+{
+	for (auto* actor : current_actors_in_clock_)
+	{
+		if (!actor)
+			return;
+
+		actor->SetActorHiddenInGame(true);
+
+		TArray<UActorComponent*, TInlineAllocator<2>> components;
+		actor->GetComponents(components);
+
+		for (auto* component : components)
+		{
+			auto* primitive_component = Cast<UPrimitiveComponent>(component);
+			if (!primitive_component)
+				continue;
+
+			primitive_component->SetCollisionResponseToAllChannels(ECR_Overlap);
+		}
+	}
 }
 
 TSet<AActor*> UClockComponent::GetOverlappingActors() const
@@ -105,9 +164,24 @@ TSet<AActor*> UClockComponent::GetOverlappingActors() const
 		{
 			auto* collision = Cast<USphereComponent>(component);
 			collision->GetOverlappingActors(overlapping_actors, base_item_);
-			return overlapping_actors;
+			break;
 		}
 	}
-	return TSet<AActor*>();
+	
+	// Get all actors that are already visible
+	TSet<AActor*> actors_to_remove;
+	for (auto* actor : overlapping_actors)
+		if (!actor->bHidden)
+			actors_to_remove.Add(actor);
+
+	// Remove those actors from the actor set
+	for (auto* actor : actors_to_remove)
+		overlapping_actors.Remove(actor);
+
+	// Clear scoped sets
+	actors_to_remove.Empty();
+	clock_components.Empty();
+
+	return overlapping_actors;
 }
 

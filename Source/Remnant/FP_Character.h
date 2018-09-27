@@ -25,6 +25,7 @@ public:
 	void SetupPlayerInputComponent(UInputComponent* input_component) override;
 
 	UCameraComponent* GetCameraComponent() const { return camera_component_; }
+	UTraverseComponent* GetTraverseComponent() { return traverse_component_; }
 
 protected:
 	void MoveForward(float value);

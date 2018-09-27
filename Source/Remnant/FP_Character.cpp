@@ -16,21 +16,21 @@
 
 AFP_Character::AFP_Character()
 {
-	// Set up Capsule
+	// Setup Capsule
 	const float capsule_radius = 55.0f;
 	const float capsule_height = 96.0f;
 	GetCapsuleComponent()->InitCapsuleSize(capsule_radius, capsule_height);
-	
-	// Setup camera component
-	const FVector camera_offset(-39.56f, 1.75f, 64.f);
-	camera_component_ = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
-	camera_component_->SetupAttachment(GetCapsuleComponent());
-	camera_component_->RelativeLocation = camera_offset;
 
-	// Setup movement component
+	// Setup camera
+	const FVector cam_offset(-39.56, 1.75, 64.0f);
+	camera_component_ = CreateDefaultSubobject<UCameraComponent>(TEXT("FP_Camera"));
+	camera_component_->SetupAttachment(GetCapsuleComponent());
+	camera_component_->RelativeLocation = cam_offset;
+
+	// Setup movement
 	movement_component_ = GetCharacterMovement();
 
-	// Set up specific components here
+	// Setup specific components
 	traverse_component_ = CreateDefaultSubobject<UTraverseComponent>(TEXT("TraverseComponent"));
 	clock_component_ = CreateDefaultSubobject<UClockComponent>(TEXT("ClockComponent"));
 }
@@ -38,6 +38,7 @@ AFP_Character::AFP_Character()
 void AFP_Character::BeginPlay()
 {
 	Super::BeginPlay();
+
 }
 
 void AFP_Character::SetupPlayerInputComponent(UInputComponent* input_component)
