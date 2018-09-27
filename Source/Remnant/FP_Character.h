@@ -12,6 +12,7 @@ class UCameraComponent;
 class UCharacterMovementComponent;
 class UTraverseComponent;
 class UClockComponent;
+class UInteractComponent;
 
 UCLASS(config = Game)
 class REMNANT_API AFP_Character : public ACharacter
@@ -35,6 +36,7 @@ protected:
 	void CharacterCrouchToggle();
 	void TraverseDimension();
 	void PlaceClock();
+	void Interact();
 	void PickupClock();
 
 private:
@@ -44,4 +46,6 @@ private:
 	UTraverseComponent* traverse_component_;
 	UPROPERTY(EditDefaultsOnly, Category = "Clock")
 	UClockComponent* clock_component_;
+	UPROPERTY(EditAnywhere)
+	UInteractComponent* interactComponent;
 };
