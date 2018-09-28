@@ -12,6 +12,7 @@ class UCameraComponent;
 class UCharacterMovementComponent;
 class UTraverseComponent;
 class UClockComponent;
+class UInteractComponent;
 
 UCLASS(config = Game)
 class REMNANT_API AFP_Character : public ACharacter
@@ -27,6 +28,8 @@ public:
 	UCameraComponent* GetCameraComponent() const { return camera_component_; }
 	UTraverseComponent* GetTraverseComponent() { return traverse_component_; }
 
+	void PickupClock();
+
 protected:
 	void MoveForward(float value);
 	void MoveRight(float value);
@@ -35,7 +38,8 @@ protected:
 	void CharacterCrouchToggle();
 	void TraverseDimension();
 	void PlaceClock();
-	void PickupClock();
+	void Interact();
+	
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
@@ -44,4 +48,6 @@ private:
 	UTraverseComponent* traverse_component_;
 	UPROPERTY(EditDefaultsOnly, Category = "Clock")
 	UClockComponent* clock_component_;
+	UPROPERTY(EditAnywhere)
+	UInteractComponent* interactComponent;
 };
