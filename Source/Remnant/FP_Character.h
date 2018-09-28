@@ -28,6 +28,8 @@ public:
 	UCameraComponent* GetCameraComponent() const { return camera_component_; }
 	UTraverseComponent* GetTraverseComponent() { return traverse_component_; }
 
+	void PickupClock();
+
 protected:
 	void MoveForward(float value);
 	void MoveRight(float value);
@@ -37,7 +39,7 @@ protected:
 	void TraverseDimension();
 	void PlaceClock();
 	void Interact();
-	void PickupClock();
+	
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
