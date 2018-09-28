@@ -4,6 +4,7 @@
 #include "GameFramework/PlayerController.h"
 #include "FP_Character.h"
 #include "InteractableActorBase.h"
+#include "TimeClock/ClockComponent.h"
 
 #include "DrawDebugHelpers.h"
 
@@ -36,10 +37,14 @@ void UInteractComponent::AttemptInteract()
 			interactableActor->InteractWith();
 			return;
 		}
-
-		// TODO: Special case if the pickup is the watch.
-		
-		
+	
+		// If hitactor isn't an interactalbe actor base, it means its the clock, then pick it up.
+		UClockComponent* clockComponent = hitResult.GetActor()->FindComponentByClass<UClockComponent>();
+		if (clockComponent)
+		{
+			// which is the player.
+			ignoreActor->PickupClock();
+		}
 	}
 }
 
