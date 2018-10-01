@@ -5,10 +5,13 @@
 #include "Components/StaticMeshComponent.h"
 #include "Containers/ContainerAllocationPolicies.h"
 #include "DimensionTrigger.h"
+#include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "Engine/LevelStreaming.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/PackageName.h"
+
+#define print(format, ...) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT(format), ##__VA_ARGS__), false)
 
 UTraverseComponent::UTraverseComponent()
 	: traverse_allowed_(true)
@@ -30,7 +33,12 @@ void UTraverseComponent::TraverseDimension()
 
 		// TODO: It's bad to compare by name, change this
 		// World reference in editor did not work well
-		const FString level_name = FPackageName::GetShortName(level_stream->PackageNameToLoad);
+		FString level_name;
+		if (GetWorld()->IsPlayInEditor())
+			level_name = FPackageName::GetShortName(level_stream->PackageNameToLoad);
+		else
+			level_name = FPackageName::GetShortName(level_stream->GetWorldAssetPackageName());
+
 		if (level_name.Compare("ObjectLevel") == 0)
 		{
 			// Change visibility on items depending on which dimension is current 
@@ -60,21 +68,36 @@ void UTraverseComponent::TraverseDimension()
 void UTraverseComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// This is kind of WET but oh well
-	// https://en.wikipedia.org/wiki/Don%27t_repeat_yourself
+	
+	// TODO:
+	// Move level loading to seperate class
 	const TArray<ULevelStreaming*> level_streams = GetWorld()->GetStreamingLevels();
 	for (ULevelStreaming* level_stream : level_streams)
 	{
-		const FString level_name = FPackageName::GetShortName(level_stream->PackageNameToLoad);
+		FString level_name;
+		FName full_level_name;
+		FLatentActionInfo latent_info;
 
-		// Set visibility on each stream to match the starting dimension
+		// This is just... bad...
+		if (GetWorld()->IsPlayInEditor())
+		{
+			level_name = FPackageName::GetShortName(level_stream->PackageNameToLoad);
+			full_level_name = level_stream->PackageNameToLoad;
+		}
+		else
+		{
+			level_name = FPackageName::GetShortName(level_stream->GetWorldAssetPackageName());
+			full_level_name = level_stream->GetWorldAssetPackageFName();
+		}
+
+		UGameplayStatics::LoadStreamLevel(GetWorld(), full_level_name, true, true, latent_info);
+		
 		if (level_name.Compare("Past") == 0)
 			level_stream->SetShouldBeVisible(false);
-		else if (level_name.Compare("Present") == 0)
-			level_stream->SetShouldBeVisible(true);
+
 		else if (level_name.Compare("ObjectLevel") == 0)
 		{
+
 			const TArray<AActor*> actors = level_stream->GetLoadedLevel()->Actors;
 			for (AActor* actor : actors)
 			{
@@ -90,6 +113,9 @@ void UTraverseComponent::BeginPlay()
 				TArray<UActorComponent*, TInlineAllocator<2>> components;
 				actor->GetComponents(components);
 
+				// TODO:
+				// Disable/Enable collision and physics on robots
+				// component->sethasenabledcollision(no physic thing) 
 				for (auto* component : components)
 				{
 					UPrimitiveComponent* primitive_comp = Cast<UPrimitiveComponent>(component);
@@ -100,6 +126,7 @@ void UTraverseComponent::BeginPlay()
 					{
 						if (!primitive_comp->ComponentHasTag("Robot"))
 							primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
+
 						actor->SetActorHiddenInGame(true);
 					}
 
@@ -107,6 +134,7 @@ void UTraverseComponent::BeginPlay()
 					{
 						if (!primitive_comp->ComponentHasTag("Robot"))
 							primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
+
 						actor->SetActorHiddenInGame(false);
 					}
 
@@ -115,7 +143,6 @@ void UTraverseComponent::BeginPlay()
 			}
 		}
 
-		level_stream->bShouldBlockOnLoad = true;
 		level_stream->BroadcastLevelLoadedStatus(GetWorld(), level_stream->GetFName(), true);
 	}
 }
@@ -126,9 +153,12 @@ void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
 	TArray<UActorComponent*, TInlineAllocator<2>> components;
 	actor->GetComponents(components);
 
+	// TODO:
+	// Disable/Enable collision and physics on robots
+
 	// We will call SetActorHiddenInGame several times if
 	// If we have more than 1 component (excluding root), and the components have several items with the same tag
-	// That is okay
+	// That is okay as SetActorHiddenInGame() checks if the new hidden is equal to the current hidden
 	for (auto* component : components)
 	{
 		UPrimitiveComponent* primitive_comp = Cast<UPrimitiveComponent>(component);
@@ -141,14 +171,16 @@ void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
 		{
 			if (actor->ActorHasTag("Past"))
 			{
-				if(!primitive_comp->ComponentHasTag("Robot"))
+				if (!primitive_comp->ComponentHasTag("Robot"))
 					primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
+
 				actor->SetActorHiddenInGame(true);
 			}
 			else if (actor->ActorHasTag("Present"))
 			{
 				if (!primitive_comp->ComponentHasTag("Robot"))
 					primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
+
 				actor->SetActorHiddenInGame(false);
 			}
 			break;
@@ -159,12 +191,14 @@ void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
 			{
 				if (!primitive_comp->ComponentHasTag("Robot"))
 					primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
+
 				actor->SetActorHiddenInGame(false);
 			}
 			else if (actor->ActorHasTag("Present"))
 			{
 				if (!primitive_comp->ComponentHasTag("Robot"))
 					primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
+
 				actor->SetActorHiddenInGame(true);
 			}
 			break;
