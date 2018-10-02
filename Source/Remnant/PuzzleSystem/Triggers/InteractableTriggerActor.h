@@ -1,13 +1,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "PuzzleSystem/InteractableActorBase.h"
 #include "InteractableTriggerActor.generated.h"
 
 class ATriggerReceiver;
 
 UCLASS()
-class REMNANT_API AInteractableTriggerActor : public AActor
+class REMNANT_API AInteractableTriggerActor : public AInteractableActorBase
 {
 	GENERATED_BODY()
 
@@ -15,7 +15,7 @@ public:
 
 	AInteractableTriggerActor();
 
-	void InteractWith();
+	void InteractWith() override;
 
 protected:
 
@@ -27,7 +27,5 @@ private:
 
 	UPROPERTY(Category = "Interactable Trigger Actor", EditAnywhere)
 	TArray<ATriggerReceiver*> triggerReceivers;
-
-
 
 };
