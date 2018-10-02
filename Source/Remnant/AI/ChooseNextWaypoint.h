@@ -21,9 +21,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	FBlackboardKeySelector waypoint_key_;
 
-	UPROPERTY(EditAnywhere, Category = "Blackboard")
-	bool is_scared_ = false;
-
 private:
 	EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& owner_comp, uint8* node_memory) override;
 };
