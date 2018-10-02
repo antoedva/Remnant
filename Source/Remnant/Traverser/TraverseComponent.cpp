@@ -51,7 +51,7 @@ void UTraverseComponent::TraverseDimension()
 
 				if (!actor->HasValidRootComponent())
 					continue;
-
+				
 				ToggleObjectVisibility(actor);
 			}
 		}
@@ -68,7 +68,7 @@ void UTraverseComponent::TraverseDimension()
 void UTraverseComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	// TODO:
 	// Move level loading to seperate class
 	const TArray<ULevelStreaming*> level_streams = GetWorld()->GetStreamingLevels();
@@ -91,7 +91,7 @@ void UTraverseComponent::BeginPlay()
 		}
 
 		UGameplayStatics::LoadStreamLevel(GetWorld(), full_level_name, true, true, latent_info);
-		
+
 		if (level_name.Compare("Past") == 0)
 			level_stream->SetShouldBeVisible(false);
 
@@ -113,28 +113,21 @@ void UTraverseComponent::BeginPlay()
 				TArray<UActorComponent*, TInlineAllocator<2>> components;
 				actor->GetComponents(components);
 
-				// TODO:
-				// Disable/Enable collision and physics on robots
-				// component->sethasenabledcollision(no physic thing) 
 				for (auto* component : components)
 				{
 					UPrimitiveComponent* primitive_comp = Cast<UPrimitiveComponent>(component);
 					if (!primitive_comp)
 						continue;
-
+					
 					if (actor->ActorHasTag("Past"))
 					{
-						if (!primitive_comp->ComponentHasTag("Robot"))
-							primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
-
+						primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
 						actor->SetActorHiddenInGame(true);
 					}
 
 					else if (actor->ActorHasTag("Present"))
 					{
-						if (!primitive_comp->ComponentHasTag("Robot"))
-							primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
-
+						primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
 						actor->SetActorHiddenInGame(false);
 					}
 
@@ -171,16 +164,12 @@ void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
 		{
 			if (actor->ActorHasTag("Past"))
 			{
-				if (!primitive_comp->ComponentHasTag("Robot"))
-					primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
-
+				primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
 				actor->SetActorHiddenInGame(true);
 			}
 			else if (actor->ActorHasTag("Present"))
 			{
-				if (!primitive_comp->ComponentHasTag("Robot"))
-					primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
-
+				primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
 				actor->SetActorHiddenInGame(false);
 			}
 			break;
@@ -189,16 +178,12 @@ void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
 		{
 			if (actor->ActorHasTag("Past"))
 			{
-				if (!primitive_comp->ComponentHasTag("Robot"))
-					primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
-
+				primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
 				actor->SetActorHiddenInGame(false);
 			}
 			else if (actor->ActorHasTag("Present"))
 			{
-				if (!primitive_comp->ComponentHasTag("Robot"))
-					primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
-
+				primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
 				actor->SetActorHiddenInGame(true);
 			}
 			break;

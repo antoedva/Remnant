@@ -18,7 +18,7 @@ EBTNodeResult::Type UChooseNextWaypoint::ExecuteTask(UBehaviorTreeComponent& own
 		return EBTNodeResult::Failed;
 
 	UBlackboardComponent* blackboard_component = owner_comp.GetBlackboardComponent();
-	if(!ensure(blackboard_component))
+	if (!ensure(blackboard_component))
 		return EBTNodeResult::Failed;
 
 	const TArray<AActor*> waypoints = patrol_route->GetWaypoints();
