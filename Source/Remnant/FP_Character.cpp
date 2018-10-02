@@ -8,6 +8,7 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/InputSettings.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "PuzzleSystem/InteractComponent.h"
 
 #include "Traverser/TraverseComponent.h"
 #include "TimeClock/ClockComponent.h"
@@ -33,6 +34,7 @@ AFP_Character::AFP_Character()
 	// Setup specific components
 	traverse_component_ = CreateDefaultSubobject<UTraverseComponent>(TEXT("TraverseComponent"));
 	clock_component_ = CreateDefaultSubobject<UClockComponent>(TEXT("ClockComponent"));
+	interactComponent = CreateDefaultSubobject<UInteractComponent>(TEXT("InteractComponent"));
 }
 
 void AFP_Character::BeginPlay()
@@ -60,7 +62,7 @@ void AFP_Character::SetupPlayerInputComponent(UInputComponent* input_component)
 	// Specific input
 	input_component->BindAction("Traverse", IE_Pressed, this, &AFP_Character::TraverseDimension);
 	input_component->BindAction("PlaceClock", IE_Pressed, this, &AFP_Character::PlaceClock);
-	input_component->BindAction("PickupClock", IE_Pressed, this, &AFP_Character::PickupClock); // this should preferably be regular pickup input 
+	input_component->BindAction("Interact", IE_Pressed, this, &AFP_Character::Interact);
 
 }
 
@@ -112,4 +114,9 @@ void AFP_Character::PickupClock()
 		return;
 
 	traverse_component_->SetTraverseAllowed(true);
+}
+
+void AFP_Character::Interact()
+{
+	interactComponent->AttemptInteract();
 }
