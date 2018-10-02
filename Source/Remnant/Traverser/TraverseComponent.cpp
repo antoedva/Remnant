@@ -2,6 +2,8 @@
 
 #include "TraverseComponent.h"
 #include "../FP_Character.h"
+#include "../LevelStreamManager.h"
+#include "../LevelStreamManager.h"
 #include "Components/StaticMeshComponent.h"
 #include "Containers/ContainerAllocationPolicies.h"
 #include "DimensionTrigger.h"
@@ -25,25 +27,16 @@ void UTraverseComponent::TraverseDimension()
 		return;
 
 	// Get all streaming levels (the ones under "Persistent Level" in the "Levels" tab)
-	const TArray<ULevelStreaming*> level_streams = GetWorld()->GetStreamingLevels();
-	for (ULevelStreaming* level_stream : level_streams)
+	for (auto& level : lsm_->GetAllLevels())
 	{
-		if (!level_stream)
+		if (!level.Value)
 			continue;
 
-		// TODO: It's bad to compare by name, change this
-		// World reference in editor did not work well
-		FString level_name;
-		if (GetWorld()->IsPlayInEditor())
-			level_name = FPackageName::GetShortName(level_stream->PackageNameToLoad);
-		else
-			level_name = FPackageName::GetShortName(level_stream->GetWorldAssetPackageName());
-
-		if (level_name.Compare("ObjectLevel") == 0)
+		if (level.Key == ALevelStreamManager::OBJECT)
 		{
 			// Change visibility on items depending on which dimension is current 
 			// TODO: Figure out if there should be two different actors/props, or if we just need to change material
-			const TArray<AActor*> actors = level_stream->GetLoadedLevel()->Actors;
+			const TArray<AActor*> actors = level.Value->GetLoadedLevel()->Actors;
 			for (AActor* actor : actors)
 			{
 				if (!actor)
@@ -51,14 +44,14 @@ void UTraverseComponent::TraverseDimension()
 
 				if (!actor->HasValidRootComponent())
 					continue;
-				
+
 				ToggleObjectVisibility(actor);
 			}
 		}
 
 		// Traverse
 		else
-			level_stream->SetShouldBeVisible(!level_stream->ShouldBeVisible());
+			level.Value->SetShouldBeVisible(!level.Value->ShouldBeVisible());
 	}
 
 	// Set the current dimension to the other dimension
@@ -69,36 +62,25 @@ void UTraverseComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// TODO:
-	// Move level loading to seperate class
-	const TArray<ULevelStreaming*> level_streams = GetWorld()->GetStreamingLevels();
-	for (ULevelStreaming* level_stream : level_streams)
+	if (!lsm_bp_)
+		return;
+
+	lsm_ = Cast<ALevelStreamManager>(GetWorld()->SpawnActor<AActor>(lsm_bp_, FVector::ZeroVector, FRotator::ZeroRotator));
+	if (!lsm_)
+		return;
+
+	lsm_->LoadAllLevels();
+
+	for (auto& level : lsm_->GetAllLevels())
 	{
-		FString level_name;
-		FName full_level_name;
-		FLatentActionInfo latent_info;
+		if (!level.Value)
+			continue;
 
-		// This is just... bad...
-		if (GetWorld()->IsPlayInEditor())
+		if (level.Key == ALevelStreamManager::PAST)
+			level.Value->SetShouldBeVisible(false);
+		else if (level.Key == ALevelStreamManager::OBJECT)
 		{
-			level_name = FPackageName::GetShortName(level_stream->PackageNameToLoad);
-			full_level_name = level_stream->PackageNameToLoad;
-		}
-		else
-		{
-			level_name = FPackageName::GetShortName(level_stream->GetWorldAssetPackageName());
-			full_level_name = level_stream->GetWorldAssetPackageFName();
-		}
-
-		UGameplayStatics::LoadStreamLevel(GetWorld(), full_level_name, true, true, latent_info);
-
-		if (level_name.Compare("Past") == 0)
-			level_stream->SetShouldBeVisible(false);
-
-		else if (level_name.Compare("ObjectLevel") == 0)
-		{
-
-			const TArray<AActor*> actors = level_stream->GetLoadedLevel()->Actors;
+			const TArray<AActor*> actors = level.Value->GetLoadedLevel()->Actors;
 			for (AActor* actor : actors)
 			{
 				if (!actor)
@@ -118,7 +100,7 @@ void UTraverseComponent::BeginPlay()
 					UPrimitiveComponent* primitive_comp = Cast<UPrimitiveComponent>(component);
 					if (!primitive_comp)
 						continue;
-					
+
 					if (actor->ActorHasTag("Past"))
 					{
 						primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
@@ -135,8 +117,6 @@ void UTraverseComponent::BeginPlay()
 				}
 			}
 		}
-
-		level_stream->BroadcastLevelLoadedStatus(GetWorld(), level_stream->GetFName(), true);
 	}
 }
 

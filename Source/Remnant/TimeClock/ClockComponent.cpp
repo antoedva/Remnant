@@ -112,22 +112,6 @@ void UClockComponent::RenderObjectsInClock()
 		if (!actor)
 			return;
 
-		// TODO: YOURE HERE
-		// To get this to work, you have to add another overlapping TSet<> with the filter as ai or something alike
-		// Then we can get the ai and stop it, yay
-		//if (actor->ActorHasTag("Robot"))
-		//{
-		//	UE_LOG(LogTemp, Warning, TEXT("YAY"));
-		//	APawn* robot = Cast<APawn>(actor);
-		//	if (!robot)
-		//		continue;
-
-		//	UE_LOG(LogTemp, Warning, TEXT("YAY"));
-
-		//	robot->GetMovementComponent()->Deactivate();
-		//	continue;
-		//}
-
 		actor->SetActorHiddenInGame(actor->bHidden ? false : true);
 
 		TArray<UActorComponent*, TInlineAllocator<2>> components;
@@ -150,18 +134,6 @@ void UClockComponent::StopRenderingObjectsInClock()
 	{
 		if (!actor)
 			return;
-
-		//if (actor->ActorHasTag("Robot"))
-		//{
-		//	APawn* robot = Cast<APawn>(actor);
-		//	if (!robot)
-		//		continue;
-
-		//	UE_LOG(LogTemp, Warning, TEXT("YAY"));
-
-		//	robot->GetMovementComponent()->Activate();
-		//	continue;
-		//}
 
 		actor->SetActorHiddenInGame(actor->bHidden ? false : true);
 
@@ -196,7 +168,9 @@ TSet<AActor*> UClockComponent::GetOverlappingActors() const
 			break;
 		}
 	}
-	
+	// TODO:
+	// Make the overlap react to base_item_ AND robots
+
 	// Keep this if we want to change how the clock works
 	// Get all actors that are already visible
 	//TSet<AActor*> actors_to_remove;
