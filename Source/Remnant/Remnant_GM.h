@@ -16,6 +16,4 @@ class REMNANT_API ARemnant_GM : public AGameModeBase
 	
 public:
 	ARemnant_GM();
-	
-	
 };

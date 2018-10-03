@@ -38,13 +38,13 @@ void UInteractComponent::AttemptInteract()
 			return;
 		}
 	
-		// If hitactor isn't an interactalbe actor base, it means its the clock, then pick it up.
-		UClockComponent* clockComponent = hitResult.GetActor()->FindComponentByClass<UClockComponent>();
-		if (clockComponent)
-		{
-			// which is the player.
-			ignoreActor->PickupClock();
-		}
+		//// If hitactor isn't an interactalbe actor base, it means its the clock, then pick it up.
+		//UClockComponent* clockComponent = hitResult.GetActor()->FindComponentByClass<UClockComponent>();
+		//if (clockComponent)
+		//{
+		//	// which is the player.
+		//	ignoreActor->PickupClock();
+		//}
 	}
 }
 
