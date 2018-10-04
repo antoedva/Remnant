@@ -6,6 +6,14 @@
 
 class ATriggerReceiver;
 
+UENUM()
+enum class EBroadcastChannel : uint8
+{
+	CHANNEL_ONE = 1 UMETA(DisplayName = "Channel One"),
+	CHANNEL_TWO UMETA(DisplayName = "Channel Two"),
+	CHANNEL_THREE UMETA(DisplayName = "Channel Three")
+};
+
 UCLASS()
 class REMNANT_API AVolumeTriggerActor : public ATriggerBox
 {
@@ -25,6 +33,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Volume Trigger")
 	bool IsActorInsideVolume() { return isActorInsideVolume; }
 
+protected:
+
+	void BeginPlay() override;
+
 private:
 
 	void TriggerAllRecievers();
@@ -35,6 +47,8 @@ private:
 	UPROPERTY(Category = "Volume Trigger Actor", EditAnywhere)
 	AActor* actorThatTriggers; // Pointer to the actor that has the ability to trigger this volume. Will most likely be the player in most instances.
 
-	
+	UPROPERTY(EditAnywhere)
+	EBroadcastChannel broadcastChannel;
+
 	bool isActorInsideVolume;
 };
