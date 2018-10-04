@@ -5,6 +5,9 @@
 AVolumeTriggerActor::AVolumeTriggerActor()
 {
 	OnActorBeginOverlap.AddDynamic(this, &AVolumeTriggerActor::OnOverlapBegin);
+	OnActorEndOverlap.AddDynamic(this, &AVolumeTriggerActor::OnOverlapEnd);
+
+	isActorInsideVolume = false;
 }
 
 AVolumeTriggerActor::~AVolumeTriggerActor()
@@ -33,7 +36,19 @@ void AVolumeTriggerActor::OnOverlapBegin(AActor* overlappedActor, AActor* otherA
 	{
 		if (otherActor && otherActor == actorThatTriggers)
 		{
+			isActorInsideVolume = true;
 			TriggerAllRecievers();
+		}
+	}
+}
+
+void AVolumeTriggerActor::OnOverlapEnd(AActor* overlappedActor, AActor* otherActor)
+{
+	if (actorThatTriggers)
+	{
+		if (otherActor && otherActor == actorThatTriggers)
+		{
+			isActorInsideVolume = false;
 		}
 	}
 }
