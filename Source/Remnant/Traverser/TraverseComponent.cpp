@@ -35,7 +35,6 @@ void UTraverseComponent::TraverseDimension()
 		if (level.Key == ALevelStreamManager::OBJECT)
 		{
 			// Change visibility on items depending on which dimension is current 
-			// TODO: Figure out if there should be two different actors/props, or if we just need to change material
 			const TArray<AActor*> actors = level.Value->GetLoadedLevel()->Actors;
 			for (AActor* actor : actors)
 			{
@@ -69,12 +68,20 @@ void UTraverseComponent::BeginPlay()
 	if (!lsm_)
 		return;
 
+	// TODO: 
+	// Find a better place to load all levels
 	lsm_->LoadAllLevels();
 
 	for (auto& level : lsm_->GetAllLevels())
 	{
 		if (!level.Value)
 			continue;
+		if (!level.Value->IsLevelLoaded())
+		{
+			UE_LOG(LogTemp, Error, TEXT("Level %s is not loaded! Make sure to set the streaming method to always loaded!"), 
+				*FPackageName::GetShortName(level.Value->PackageNameToLoad.ToString()));
+			continue;
+		}
 
 		if (level.Key == ALevelStreamManager::PAST)
 			level.Value->SetShouldBeVisible(false);
@@ -125,9 +132,6 @@ void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
 	// Get all components in the actor, max 2 (root, item)
 	TArray<UActorComponent*, TInlineAllocator<2>> components;
 	actor->GetComponents(components);
-
-	// TODO:
-	// Disable/Enable collision and physics on robots
 
 	// We will call SetActorHiddenInGame several times if
 	// If we have more than 1 component (excluding root), and the components have several items with the same tag
