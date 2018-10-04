@@ -45,6 +45,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	UCameraComponent* camera_component_;
 	UCharacterMovementComponent* movement_component_;
+	UPROPERTY(EditDefaultsOnly, Category = "Traverse")
 	UTraverseComponent* traverse_component_;
 	UPROPERTY(EditDefaultsOnly, Category = "Clock")
 	UClockComponent* clock_component_;

@@ -10,6 +10,7 @@
 #include "DrawDebugHelpers.h"
 #include "Engine/LevelStreaming.h"
 #include "Engine/World.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Traverser/TraverseComponent.h"
 #include "UObject/ConstructorHelpers.h"
@@ -111,7 +112,7 @@ void UClockComponent::RenderObjectsInClock()
 		if (!actor)
 			return;
 
-		actor->SetActorHiddenInGame(false);
+		actor->SetActorHiddenInGame(actor->bHidden ? false : true);
 
 		TArray<UActorComponent*, TInlineAllocator<2>> components;
 		actor->GetComponents(components);
@@ -122,7 +123,7 @@ void UClockComponent::RenderObjectsInClock()
 			if (!primitive_component)
 				continue;
 
-			primitive_component->SetCollisionResponseToAllChannels(ECR_Block);
+			primitive_component->SetCollisionResponseToAllChannels(actor->bHidden ? ECR_Overlap : ECR_Block);
 		}
 	}
 }
@@ -134,7 +135,7 @@ void UClockComponent::StopRenderingObjectsInClock()
 		if (!actor)
 			return;
 
-		actor->SetActorHiddenInGame(true);
+		actor->SetActorHiddenInGame(actor->bHidden ? false : true);
 
 		TArray<UActorComponent*, TInlineAllocator<2>> components;
 		actor->GetComponents(components);
@@ -145,7 +146,7 @@ void UClockComponent::StopRenderingObjectsInClock()
 			if (!primitive_component)
 				continue;
 
-			primitive_component->SetCollisionResponseToAllChannels(ECR_Overlap);
+			primitive_component->SetCollisionResponseToAllChannels(actor->bHidden ? ECR_Overlap : ECR_Block);
 		}
 	}
 }
@@ -167,19 +168,28 @@ TSet<AActor*> UClockComponent::GetOverlappingActors() const
 			break;
 		}
 	}
-	
+	// TODO:
+	// Make the overlap react to base_item_ AND robots
+
+	// Keep this if we want to change how the clock works
 	// Get all actors that are already visible
-	TSet<AActor*> actors_to_remove;
-	for (auto* actor : overlapping_actors)
-		if (!actor->bHidden)
-			actors_to_remove.Add(actor);
+	//TSet<AActor*> actors_to_remove;
+	//for (auto* actor : overlapping_actors)
+	//{
+	//	// Skip robots
+	//	if (actor->ActorHasTag("Robot"))
+	//		continue;
+
+	//	if (!actor->bHidden)
+	//		actors_to_remove.Add(actor);
+	//}
 
 	// Remove those actors from the actor set
-	for (auto* actor : actors_to_remove)
-		overlapping_actors.Remove(actor);
+	//for (auto* actor : actors_to_remove)
+		//overlapping_actors.Remove(actor);
 
 	// Clear scoped sets
-	actors_to_remove.Empty();
+	//actors_to_remove.Empty();
 	clock_components.Empty();
 
 	return overlapping_actors;

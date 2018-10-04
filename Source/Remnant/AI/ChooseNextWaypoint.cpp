@@ -18,7 +18,7 @@ EBTNodeResult::Type UChooseNextWaypoint::ExecuteTask(UBehaviorTreeComponent& own
 		return EBTNodeResult::Failed;
 
 	UBlackboardComponent* blackboard_component = owner_comp.GetBlackboardComponent();
-	if(!ensure(blackboard_component))
+	if (!ensure(blackboard_component))
 		return EBTNodeResult::Failed;
 
 	const TArray<AActor*> waypoints = patrol_route->GetWaypoints();
@@ -33,7 +33,7 @@ EBTNodeResult::Type UChooseNextWaypoint::ExecuteTask(UBehaviorTreeComponent& own
 	blackboard_component->SetValueAsObject(waypoint_key_.SelectedKeyName, waypoints[index]);
 
 	// Cycle index
-	const int32 new_index = (is_scared_ ? index - 1 : index + 1) % waypoints.Num(); // I'm not sure if I'm allowed to do index - 1
+	const int32 new_index = (index + 1) % waypoints.Num();
 	blackboard_component->SetValueAsInt(key_index_.SelectedKeyName, new_index);
 
 	return EBTNodeResult::Succeeded;

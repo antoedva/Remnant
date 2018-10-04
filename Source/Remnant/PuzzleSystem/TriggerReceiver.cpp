@@ -5,7 +5,6 @@
 ATriggerReceiver::ATriggerReceiver()
 {
 	blueprintLink = CreateDefaultSubobject<UReceiverBlueprintLink>("BlueprintLink");
-	blueprintLink->RegisterComponent();
 }
 
 ATriggerReceiver::~ATriggerReceiver()
@@ -16,6 +15,7 @@ ATriggerReceiver::~ATriggerReceiver()
 void ATriggerReceiver::BeginPlay()
 {
 	Super::BeginPlay();
+	blueprintLink->RegisterComponent();
 }
 
 bool ATriggerReceiver::TriggerThisReceiver()

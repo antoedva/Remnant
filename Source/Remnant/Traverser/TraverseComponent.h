@@ -9,6 +9,7 @@
 class AFP_Character;
 class UWorld;
 class ULevelStreaming;
+class ALevelStreamManager;
 
 UCLASS()
 class REMNANT_API UTraverseComponent : public UActorComponent
@@ -23,7 +24,7 @@ public:
 	bool GetTraverseAllowed() const { return traverse_allowed_; }
 
 protected:
-	virtual void BeginPlay() override;
+	void BeginPlay() override;
 	
 private:
 	enum Dimension
@@ -33,6 +34,11 @@ private:
 	} dimension_;
 
 	bool traverse_allowed_;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "LevelManager")
+	TSubclassOf<AActor> lsm_bp_;
+
+	ALevelStreamManager* lsm_;
 
 	void ToggleObjectVisibility(AActor* actor);
 };

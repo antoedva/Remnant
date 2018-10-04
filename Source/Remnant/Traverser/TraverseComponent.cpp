@@ -2,13 +2,18 @@
 
 #include "TraverseComponent.h"
 #include "../FP_Character.h"
+#include "../LevelStreamManager.h"
+#include "../LevelStreamManager.h"
 #include "Components/StaticMeshComponent.h"
 #include "Containers/ContainerAllocationPolicies.h"
 #include "DimensionTrigger.h"
+#include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "Engine/LevelStreaming.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/PackageName.h"
+
+#define print(format, ...) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT(format), ##__VA_ARGS__), false)
 
 UTraverseComponent::UTraverseComponent()
 	: traverse_allowed_(true)
@@ -22,20 +27,16 @@ void UTraverseComponent::TraverseDimension()
 		return;
 
 	// Get all streaming levels (the ones under "Persistent Level" in the "Levels" tab)
-	const TArray<ULevelStreaming*> level_streams = GetWorld()->GetStreamingLevels();
-	for (ULevelStreaming* level_stream : level_streams)
+	for (auto& level : lsm_->GetAllLevels())
 	{
-		if (!level_stream)
+		if (!level.Value)
 			continue;
 
-		// TODO: It's bad to compare by name, change this
-		// World reference in editor did not work well
-		const FString level_name = FPackageName::GetShortName(level_stream->PackageNameToLoad);
-		if (level_name.Compare("ObjectLevel") == 0)
+		if (level.Key == ALevelStreamManager::OBJECT)
 		{
 			// Change visibility on items depending on which dimension is current 
 			// TODO: Figure out if there should be two different actors/props, or if we just need to change material
-			const TArray<AActor*> actors = level_stream->GetLoadedLevel()->Actors;
+			const TArray<AActor*> actors = level.Value->GetLoadedLevel()->Actors;
 			for (AActor* actor : actors)
 			{
 				if (!actor)
@@ -50,7 +51,7 @@ void UTraverseComponent::TraverseDimension()
 
 		// Traverse
 		else
-			level_stream->SetShouldBeVisible(!level_stream->ShouldBeVisible());
+			level.Value->SetShouldBeVisible(!level.Value->ShouldBeVisible());
 	}
 
 	// Set the current dimension to the other dimension
@@ -61,21 +62,25 @@ void UTraverseComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// This is kind of WET but oh well
-	// https://en.wikipedia.org/wiki/Don%27t_repeat_yourself
-	const TArray<ULevelStreaming*> level_streams = GetWorld()->GetStreamingLevels();
-	for (ULevelStreaming* level_stream : level_streams)
-	{
-		const FString level_name = FPackageName::GetShortName(level_stream->PackageNameToLoad);
+	if (!lsm_bp_)
+		return;
 
-		// Set visibility on each stream to match the starting dimension
-		if (level_name.Compare("Past") == 0)
-			level_stream->SetShouldBeVisible(false);
-		else if (level_name.Compare("Present") == 0)
-			level_stream->SetShouldBeVisible(true);
-		else if (level_name.Compare("ObjectLevel") == 0)
+	lsm_ = Cast<ALevelStreamManager>(GetWorld()->SpawnActor<AActor>(lsm_bp_, FVector::ZeroVector, FRotator::ZeroRotator));
+	if (!lsm_)
+		return;
+
+	lsm_->LoadAllLevels();
+
+	for (auto& level : lsm_->GetAllLevels())
+	{
+		if (!level.Value)
+			continue;
+
+		if (level.Key == ALevelStreamManager::PAST)
+			level.Value->SetShouldBeVisible(false);
+		else if (level.Key == ALevelStreamManager::OBJECT)
 		{
-			const TArray<AActor*> actors = level_stream->GetLoadedLevel()->Actors;
+			const TArray<AActor*> actors = level.Value->GetLoadedLevel()->Actors;
 			for (AActor* actor : actors)
 			{
 				if (!actor)
@@ -112,9 +117,6 @@ void UTraverseComponent::BeginPlay()
 				}
 			}
 		}
-
-		level_stream->bShouldBlockOnLoad = true;
-		level_stream->BroadcastLevelLoadedStatus(GetWorld(), level_stream->GetFName(), true);
 	}
 }
 
@@ -124,9 +126,12 @@ void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
 	TArray<UActorComponent*, TInlineAllocator<2>> components;
 	actor->GetComponents(components);
 
+	// TODO:
+	// Disable/Enable collision and physics on robots
+
 	// We will call SetActorHiddenInGame several times if
 	// If we have more than 1 component (excluding root), and the components have several items with the same tag
-	// That is okay
+	// That is okay as SetActorHiddenInGame() checks if the new hidden is equal to the current hidden
 	for (auto* component : components)
 	{
 		UPrimitiveComponent* primitive_comp = Cast<UPrimitiveComponent>(component);

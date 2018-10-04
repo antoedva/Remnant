@@ -119,4 +119,6 @@ void AFP_Character::PickupClock()
 void AFP_Character::Interact()
 {
 	interactComponent->AttemptInteract();
+
+	PickupClock();
 }
