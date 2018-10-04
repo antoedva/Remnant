@@ -10,7 +10,18 @@ void UReceiverBlueprintLink::BeginPlay()
 	Super::BeginPlay();
 }
 
-void UReceiverBlueprintLink::BroadcastToBlueprint()
+void UReceiverBlueprintLink::BroadcastToBlueprint(int channel)
 {
-	onTrigger.Broadcast();
+	if (channel == 1)
+	{
+		onTriggerOne.Broadcast();
+	}
+	else if (channel == 2)
+	{
+		onTriggerTwo.Broadcast();
+	}
+	else if (channel == 3)
+	{
+		onTriggerThree.Broadcast();
+	}
 }

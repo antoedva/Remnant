@@ -21,6 +21,6 @@ void AInteractableTriggerActor::TriggerAllRecievers()
 {
 	for (ATriggerReceiver* receiver : triggerReceivers)
 	{
-		receiver->TriggerThisReceiver();
+		receiver->TriggerThisReceiver(1);
 	}
 }

@@ -16,7 +16,7 @@ public:
 	ATriggerReceiver();
 	~ATriggerReceiver();
 
-	bool TriggerThisReceiver();
+	bool TriggerThisReceiver(int channel);
 
 protected:
 

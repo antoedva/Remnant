@@ -6,18 +6,24 @@
 #include "Components/ActorComponent.h"
 #include "ReceiverBlueprintLink.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTrigger);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTriggerOne);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTriggerTwo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTriggerThree);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class REMNANT_API UReceiverBlueprintLink : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	
 	UReceiverBlueprintLink();
 
-	void BroadcastToBlueprint();
+	void BroadcastToBlueprint(int channel);
+
+	// The designers wanted an optional array of actors so that they could script objects depending on the actors in this arrays position or w/e.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BlueprintLink")
+	TArray<AActor*> optionalActorArray;
 
 protected:
 
@@ -26,6 +32,11 @@ protected:
 private:
 
 	UPROPERTY(BlueprintAssignable)
-	FOnTrigger onTrigger;
+	FOnTriggerOne onTriggerOne;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnTriggerOne onTriggerTwo;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnTriggerOne onTriggerThree;
 };

@@ -18,11 +18,11 @@ void ATriggerReceiver::BeginPlay()
 	blueprintLink->RegisterComponent();
 }
 
-bool ATriggerReceiver::TriggerThisReceiver()
+bool ATriggerReceiver::TriggerThisReceiver(int channel)
 {
 	if (blueprintLink)
 	{
-		blueprintLink->BroadcastToBlueprint();
+		blueprintLink->BroadcastToBlueprint(channel);
 		return true;
 	}
 	
