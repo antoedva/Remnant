@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PuzzleSystem/InteractableActorBase.h"
+#include "PuzzleSystem/Actors/InteractableActorBase.h"
 #include "PickUpActor.generated.h"
 
 UCLASS()

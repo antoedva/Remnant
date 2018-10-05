@@ -8,7 +8,7 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/InputSettings.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "PuzzleSystem/InteractComponent.h"
+#include "PuzzleSystem/Components/InteractComponent.h"
 
 #include "Traverser/TraverseComponent.h"
 #include "TimeClock/ClockComponent.h"

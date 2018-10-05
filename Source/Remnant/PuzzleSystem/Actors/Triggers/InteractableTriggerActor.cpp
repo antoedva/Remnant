@@ -1,9 +1,11 @@
 #include "InteractableTriggerActor.h"
 
-#include "PuzzleSystem/TriggerReceiver.h"
+#include "PuzzleSystem/Components/TriggerComponent.h"
 
 AInteractableTriggerActor::AInteractableTriggerActor()
 {
+	triggerComponent = CreateDefaultSubobject<UTriggerComponent>("Trigger Component");
+
 	PrimaryActorTick.bCanEverTick = false;
 }
 
@@ -14,13 +16,5 @@ void AInteractableTriggerActor::BeginPlay()
 
 void AInteractableTriggerActor::InteractWith()
 {
-	TriggerAllRecievers();
-}
-
-void AInteractableTriggerActor::TriggerAllRecievers()
-{
-	for (ATriggerReceiver* receiver : triggerReceivers)
-	{
-		receiver->TriggerThisReceiver(1);
-	}
+	triggerComponent->TriggerAllRecievers();
 }

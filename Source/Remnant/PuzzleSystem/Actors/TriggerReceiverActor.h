@@ -2,19 +2,19 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "TriggerReceiver.generated.h"
+#include "TriggerReceiverActor.generated.h"
 
-class UReceiverBlueprintLink;
+class UBlueprintLinkComponent;
 
 UCLASS()
-class REMNANT_API ATriggerReceiver : public AActor
+class REMNANT_API ATriggerReceiverActor : public AActor
 {
 	GENERATED_BODY()
 
 public:
 
-	ATriggerReceiver();
-	~ATriggerReceiver();
+	ATriggerReceiverActor();
+	~ATriggerReceiverActor();
 
 	bool TriggerThisReceiver(int channel);
 
@@ -25,6 +25,6 @@ protected:
 private:
 
 	UPROPERTY(EditAnywhere)
-	UReceiverBlueprintLink* blueprintLink;
+	UBlueprintLinkComponent* blueprintLink;
 
 };

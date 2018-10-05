@@ -4,20 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "ReceiverBlueprintLink.generated.h"
+
+#include "BlueprintLinkComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTriggerOne);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTriggerTwo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTriggerThree);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class REMNANT_API UReceiverBlueprintLink : public UActorComponent
+class REMNANT_API UBlueprintLinkComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
 	
-	UReceiverBlueprintLink();
+	UBlueprintLinkComponent();
 
 	void BroadcastToBlueprint(int channel);
 

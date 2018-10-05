@@ -3,7 +3,7 @@
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "FP_Character.h"
-#include "InteractableActorBase.h"
+#include "PuzzleSystem/Actors/InteractableActorBase.h"
 #include "TimeClock/ClockComponent.h"
 
 #include "DrawDebugHelpers.h"

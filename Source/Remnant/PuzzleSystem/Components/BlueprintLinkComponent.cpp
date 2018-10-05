@@ -1,16 +1,16 @@
-#include "ReceiverBlueprintLink.h"
+#include "BlueprintLinkComponent.h"
 
-UReceiverBlueprintLink::UReceiverBlueprintLink()
+UBlueprintLinkComponent::UBlueprintLinkComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UReceiverBlueprintLink::BeginPlay()
+void UBlueprintLinkComponent::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-void UReceiverBlueprintLink::BroadcastToBlueprint(int channel)
+void UBlueprintLinkComponent::BroadcastToBlueprint(int channel)
 {
 	if (channel == 1)
 	{

@@ -2,17 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "Engine/TriggerBox.h"
+
 #include "VolumeTriggerActor.generated.h"
 
-class ATriggerReceiver;
-
-UENUM()
-enum class EBroadcastChannel : uint8
-{
-	CHANNEL_ONE = 1 UMETA(DisplayName = "Channel One"),
-	CHANNEL_TWO UMETA(DisplayName = "Channel Two"),
-	CHANNEL_THREE UMETA(DisplayName = "Channel Three")
-};
+class UTriggerComponent;
 
 UCLASS()
 class REMNANT_API AVolumeTriggerActor : public ATriggerBox
@@ -39,16 +32,11 @@ protected:
 
 private:
 
-	void TriggerAllRecievers();
-
-	UPROPERTY(Category = "Volume Trigger Actor", EditAnywhere)
-	TArray<ATriggerReceiver*> triggerReceivers;
+	UPROPERTY(EditAnywhere)
+	UTriggerComponent* triggerComponent;
 
 	UPROPERTY(Category = "Volume Trigger Actor", EditAnywhere)
 	AActor* actorThatTriggers; // Pointer to the actor that has the ability to trigger this volume. Will most likely be the player in most instances.
-
-	UPROPERTY(EditAnywhere)
-	EBroadcastChannel broadcastChannel;
 
 	bool isActorInsideVolume;
 };
