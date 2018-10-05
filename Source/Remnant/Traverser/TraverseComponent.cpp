@@ -26,6 +26,12 @@ void UTraverseComponent::TraverseDimension()
 	if (!traverse_allowed_)
 		return;
 
+	if (!lsm_)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Level manager not set in CH_Player->traverse_component_->LevelManager!"));
+		return;
+	}
+
 	// Get all streaming levels (the ones under "Persistent Level" in the "Levels" tab)
 	for (auto& level : lsm_->GetAllLevels())
 	{
@@ -62,7 +68,10 @@ void UTraverseComponent::BeginPlay()
 	Super::BeginPlay();
 
 	if (!lsm_bp_)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Level manager not set in CH_Player->traverse_component_->LevelManager!"));
 		return;
+	}
 
 	lsm_ = Cast<ALevelStreamManager>(GetWorld()->SpawnActor<AActor>(lsm_bp_, FVector::ZeroVector, FRotator::ZeroRotator));
 	if (!lsm_)
