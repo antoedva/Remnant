@@ -16,28 +16,29 @@ void UTriggerComponent::TriggerAllRecievers()
 {
 	for (ATriggerReceiverActor* receiver : triggerReceivers)
 	{
-		if (receiver)
+		if (!receiver)
 		{
-			bool result;
+			continue;
+		}
 
-			if (broadcastChannel == ETriggerBroadcastChannel::CHANNEL_ONE)
-			{
-				result = receiver->TriggerThisReceiver(static_cast<int>(ETriggerBroadcastChannel::CHANNEL_ONE));
-				UE_LOG(LogTemp, Warning, TEXT("1"));
-			}
-			else if (broadcastChannel == ETriggerBroadcastChannel::CHANNEL_TWO)
-			{
-				result = receiver->TriggerThisReceiver(static_cast<int>(ETriggerBroadcastChannel::CHANNEL_TWO));
-			}
-			else if (broadcastChannel == ETriggerBroadcastChannel::CHANNEL_THREE)
-			{
-				result = receiver->TriggerThisReceiver(static_cast<int>(ETriggerBroadcastChannel::CHANNEL_THREE));
-			}
+		bool result;
 
-			if (!result)
-			{
-				UE_LOG(LogTemp, Error, TEXT("Failed to trigger this receiver in VolumeTriggerActor."));
-			}
+		if (broadcastChannel == ETriggerBroadcastChannel::CHANNEL_ONE)
+		{
+			result = receiver->TriggerThisReceiver(static_cast<int>(ETriggerBroadcastChannel::CHANNEL_ONE));
+		}
+		else if (broadcastChannel == ETriggerBroadcastChannel::CHANNEL_TWO)
+		{
+			result = receiver->TriggerThisReceiver(static_cast<int>(ETriggerBroadcastChannel::CHANNEL_TWO));
+		}
+		else if (broadcastChannel == ETriggerBroadcastChannel::CHANNEL_THREE)
+		{
+			result = receiver->TriggerThisReceiver(static_cast<int>(ETriggerBroadcastChannel::CHANNEL_THREE));
+		}
+
+		if (!result)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed to trigger this receiver in VolumeTriggerActor."));
 		}
 	}
 }
