@@ -25,8 +25,10 @@ protected:
 
 private:
 
-	UPROPERTY(EditAnywhere)
-	UGameInstance* gameInstance;
+	//UPROPERTY(EditAnywhere)
+	//UClass* gameInstance;
+
+	//UGameInstance* gameInstanceActual;
 
 	UPROPERTY(EditAnywhere)
 	FString itemName;

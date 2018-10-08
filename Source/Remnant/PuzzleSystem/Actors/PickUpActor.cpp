@@ -11,6 +11,7 @@ APickUpActor::APickUpActor()
 void APickUpActor::BeginPlay()
 {
 	Super::BeginPlay();
+	//gameInstanceActual = Cast<BP_Remannat_GI>(gameInstance);
 }
 
 void APickUpActor::InteractWith(UInventoryComponent* inventory)
