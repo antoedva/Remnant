@@ -6,6 +6,7 @@
 #include "InteractableTriggerActor.generated.h"
 
 class UTriggerComponent;
+class UInventoryComponent;
 
 UCLASS()
 class REMNANT_API AInteractableTriggerActor : public AInteractableActorBase
@@ -16,7 +17,7 @@ public:
 
 	AInteractableTriggerActor();
 
-	void InteractWith() override;
+	void InteractWith(UInventoryComponent* inventory) override;
 
 protected:
 
