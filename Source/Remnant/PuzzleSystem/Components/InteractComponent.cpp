@@ -4,7 +4,7 @@
 #include "GameFramework/PlayerController.h"
 #include "FP_Character.h"
 #include "PuzzleSystem/Actors/InteractableActorBase.h"
-#include "TimeClock/ClockComponent.h"
+#include "PuzzleSystem/Components/InventoryComponent.h"
 
 #include "DrawDebugHelpers.h"
 
@@ -22,6 +22,8 @@ void UInteractComponent::BeginPlay()
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed to get owner in InteractComponent."));
 	}
+
+	cachedInventoryComponent = GetOwner()->FindComponentByClass<UInventoryComponent>();
 }
 
 void UInteractComponent::AttemptInteract()
@@ -34,8 +36,14 @@ void UInteractComponent::AttemptInteract()
 		AInteractableActorBase* interactableActor = Cast<AInteractableActorBase>(hitResult.GetActor());
 		if (interactableActor)
 		{
-			interactableActor->InteractWith();
-			return;
+			if (cachedInventoryComponent)
+			{
+				interactableActor->InteractWith(cachedInventoryComponent);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("variable cachedInventoryComponent in InteractComponent is nullptr!"));
+			}
 		}
 	}
 }
