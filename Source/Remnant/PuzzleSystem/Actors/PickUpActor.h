@@ -1,8 +1,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PuzzleSystem/InteractableActorBase.h"
+#include "PuzzleSystem/Actors/InteractableActorBase.h"
 #include "PickUpActor.generated.h"
+
+class UInventoryComponent;
+class UGameInstance;
 
 UCLASS()
 class REMNANT_API APickUpActor : public AInteractableActorBase
@@ -14,9 +17,16 @@ public:
 	APickUpActor();
 
 	FString GetName() { return itemName; }
-	void InteractWith() override;
+	void InteractWith(UInventoryComponent* inventory) override;
+
+protected:
+
+	void BeginPlay() override;
 
 private:
+
+	UPROPERTY(EditAnywhere)
+	UGameInstance* gameInstance;
 
 	UPROPERTY(EditAnywhere)
 	FString itemName;

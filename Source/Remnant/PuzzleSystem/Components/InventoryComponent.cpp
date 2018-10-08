@@ -1,6 +1,6 @@
 #include "InventoryComponent.h"
 
-#include "PickUpActor.h"
+#include "PuzzleSystem/Actors/PickUpActor.h"
 
 UInventoryComponent::UInventoryComponent()
 {
