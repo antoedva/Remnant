@@ -5,6 +5,7 @@
 #include "TriggerReceiverActor.generated.h"
 
 class UBlueprintLinkComponent;
+class UReceiverTargets;
 
 UCLASS()
 class REMNANT_API ATriggerReceiverActor : public AActor
@@ -17,6 +18,9 @@ public:
 	~ATriggerReceiverActor();
 
 	bool TriggerThisReceiver(int channel);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Triggers")
+	UReceiverTargets* targets_;
 
 protected:
 
