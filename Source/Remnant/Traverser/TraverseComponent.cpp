@@ -123,7 +123,7 @@ void UTraverseComponent::BeginPlay()
 						actor->SetActorHiddenInGame(true);
 					}
 
-					else if (actor->ActorHasTag("Present"))
+					else 
 					{
 						primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
 						actor->SetActorHiddenInGame(false);

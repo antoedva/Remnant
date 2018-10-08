@@ -1,10 +1,12 @@
 #include "TriggerReceiver.h"
 
 #include "PuzzleSystem/ReceiverBlueprintLink.h"
+#include "ReceiverTargets.h"
 
 ATriggerReceiver::ATriggerReceiver()
 {
 	blueprintLink = CreateDefaultSubobject<UReceiverBlueprintLink>("BlueprintLink");
+	targets_ = CreateDefaultSubobject<UReceiverTargets>("Receiver target");
 }
 
 ATriggerReceiver::~ATriggerReceiver()
@@ -25,6 +27,6 @@ bool ATriggerReceiver::TriggerThisReceiver()
 		blueprintLink->BroadcastToBlueprint();
 		return true;
 	}
-	
+
 	return false;
 }
