@@ -8,7 +8,8 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/InputSettings.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "PuzzleSystem/InteractComponent.h"
+#include "PuzzleSystem/Components/InteractComponent.h"
+#include "PuzzleSystem/Components/InventoryComponent.h"
 
 #include "Traverser/TraverseComponent.h"
 #include "TimeClock/ClockComponent.h"
@@ -35,6 +36,7 @@ AFP_Character::AFP_Character()
 	traverse_component_ = CreateDefaultSubobject<UTraverseComponent>(TEXT("TraverseComponent"));
 	clock_component_ = CreateDefaultSubobject<UClockComponent>(TEXT("ClockComponent"));
 	interactComponent = CreateDefaultSubobject<UInteractComponent>(TEXT("InteractComponent"));
+	inventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
 }
 
 void AFP_Character::BeginPlay()

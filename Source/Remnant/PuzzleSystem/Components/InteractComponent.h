@@ -9,6 +9,7 @@
 #define OUT
 
 class AFP_Character;
+class UInventoryComponent;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class REMNANT_API UInteractComponent : public UActorComponent
@@ -33,5 +34,7 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float interactRange;
+
+	UInventoryComponent* cachedInventoryComponent;
 
 };
