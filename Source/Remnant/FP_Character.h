@@ -13,6 +13,7 @@ class UCharacterMovementComponent;
 class UTraverseComponent;
 class UClockComponent;
 class UInteractComponent;
+class UInventoryComponent;
 
 UCLASS(config = Game)
 class REMNANT_API AFP_Character : public ACharacter
@@ -51,4 +52,6 @@ private:
 	UClockComponent* clock_component_;
 	UPROPERTY(EditAnywhere)
 	UInteractComponent* interactComponent;
+
+	UInventoryComponent* inventoryComponent;
 };
