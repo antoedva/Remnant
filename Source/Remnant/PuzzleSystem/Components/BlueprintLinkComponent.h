@@ -7,9 +7,7 @@
 
 #include "BlueprintLinkComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTriggerOne);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTriggerTwo);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTriggerThree);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTrigger, int, channel);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class REMNANT_API UBlueprintLinkComponent : public UActorComponent
@@ -31,13 +29,6 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-
 	UPROPERTY(BlueprintAssignable)
-	FOnTriggerOne onTriggerOne;
-
-	UPROPERTY(BlueprintAssignable)
-	FOnTriggerOne onTriggerTwo;
-
-	UPROPERTY(BlueprintAssignable)
-	FOnTriggerOne onTriggerThree;
+	FOnTrigger on_trigger_;
 };

@@ -1,4 +1,5 @@
 #include "BlueprintLinkComponent.h"
+#include "../TriggerBroadcastChannel.h"
 
 UBlueprintLinkComponent::UBlueprintLinkComponent()
 {
@@ -12,16 +13,12 @@ void UBlueprintLinkComponent::BeginPlay()
 
 void UBlueprintLinkComponent::BroadcastToBlueprint(int channel)
 {
-	if (channel == 1)
+	if (static_cast<ETriggerBroadcastChannel>(channel) != ETriggerBroadcastChannel::ALL)
 	{
-		onTriggerOne.Broadcast();
+		on_trigger_.Broadcast(channel);
+		return;
 	}
-	else if (channel == 2)
-	{
-		onTriggerTwo.Broadcast();
-	}
-	else if (channel == 3)
-	{
-		onTriggerThree.Broadcast();
-	}
+
+	for (unsigned i = 0; i < (int)ETriggerBroadcastChannel::ALL; ++i)
+		on_trigger_.Broadcast(i);
 }
