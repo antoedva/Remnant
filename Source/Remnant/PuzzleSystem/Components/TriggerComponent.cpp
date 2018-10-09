@@ -21,7 +21,7 @@ void UTriggerComponent::TriggerAllRecievers()
 			continue;
 		}
 
-		bool result;
+		bool result = false;
 
 		if (broadcastChannel == ETriggerBroadcastChannel::CHANNEL_ONE)
 		{
@@ -38,7 +38,7 @@ void UTriggerComponent::TriggerAllRecievers()
 
 		if (!result)
 		{
-			UE_LOG(LogTemp, Error, TEXT("Failed to trigger this receiver in VolumeTriggerActor."));
+			UE_LOG(LogTemp, Error, TEXT("Failed to trigger this receiver in VolumeTriggerActor. Make sure you have a channel set. MAX_CHANNELS is not valid."));
 		}
 	}
 }
