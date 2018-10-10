@@ -11,6 +11,8 @@
 #include "Engine/World.h"
 #include "Engine/LevelStreaming.h"
 #include "Kismet/GameplayStatics.h"
+#include "Materials/MaterialParameterCollection.h"
+#include "Materials/MaterialParameterCollectionInstance.h"
 #include "Misc/PackageName.h"
 
 #define print(format, ...) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT(format), ##__VA_ARGS__), false)
@@ -66,6 +68,18 @@ void UTraverseComponent::TraverseDimension()
 void UTraverseComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (past_traverse_shader_.parameter_collection_)
+	{
+		const FCollectionScalarParameter* lol = past_traverse_shader_.parameter_collection_->GetScalarParameterByName("Distance");
+		UE_LOG(LogTemp, Warning, TEXT("%f"), lol->DefaultValue);
+		past_traverse_shader_.material_instance_ = GetWorld()->GetParameterCollectionInstance(past_traverse_shader_.parameter_collection_);
+		past_traverse_shader_.material_instance_->SetScalarParameterValue(lol->ParameterName, 400.0f);
+
+		float distance = 0.0f;
+		past_traverse_shader_.material_instance_->GetScalarParameterValue("Distance", distance);
+		UE_LOG(LogTemp, Warning, TEXT("%f"), distance);
+	}
 
 	if (!lsm_bp_)
 	{
