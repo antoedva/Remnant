@@ -10,8 +10,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include "Traverser/TraverseComponent.h"
-#include "Traverser/DimensionTrigger.h"
-//#include "TimeClock/TimeCircle.h"
 
 #include "UObject/ConstructorHelpers.h"
 

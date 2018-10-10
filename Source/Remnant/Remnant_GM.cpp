@@ -7,7 +7,7 @@
 ARemnant_GM::ARemnant_GM()
 	: Super()
 {
-	static ConstructorHelpers::FClassFinder<APawn> player(TEXT("/Game/General_BPs/FP_Character_BP"));
+	static ConstructorHelpers::FClassFinder<APawn> player(TEXT("/Game/General_BPs/CH_Player"));
 	DefaultPawnClass = player.Class;
 }
 
