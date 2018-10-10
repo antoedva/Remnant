@@ -34,7 +34,11 @@ private:
 	AFP_Character* player_;
 	AActor* clock_;
 
-	void CreateClock();
 	bool GetSpawnLocation(OUT FVector& location) const;
+	bool LineTrace(OUT FHitResult& result) const;
+	void RenderObjectsInClock();
+	void StopRenderingObjectsInClock();
+
+	TSet<AActor*> current_actors_in_clock_;
 	TSet<AActor*> GetOverlappingActors() const;
 };

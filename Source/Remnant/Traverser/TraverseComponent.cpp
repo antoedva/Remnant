@@ -2,13 +2,18 @@
 
 #include "TraverseComponent.h"
 #include "../FP_Character.h"
+#include "../LevelStreamManager.h"
+#include "../LevelStreamManager.h"
 #include "Components/StaticMeshComponent.h"
 #include "Containers/ContainerAllocationPolicies.h"
 #include "DimensionTrigger.h"
+#include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "Engine/LevelStreaming.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/PackageName.h"
+
+#define print(format, ...) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT(format), ##__VA_ARGS__), false)
 
 UTraverseComponent::UTraverseComponent()
 	: traverse_allowed_(true)
@@ -21,21 +26,22 @@ void UTraverseComponent::TraverseDimension()
 	if (!traverse_allowed_)
 		return;
 
-	// Get all streaming levels (the ones under "Persistent Level" in the "Levels" tab)
-	const TArray<ULevelStreaming*> level_streams = GetWorld()->GetStreamingLevels();
-	for (ULevelStreaming* level_stream : level_streams)
+	if (!lsm_)
 	{
-		if (!level_stream)
+		UE_LOG(LogTemp, Error, TEXT("Level manager not set in CH_Player->traverse_component_->LevelManager!"));
+		return;
+	}
+
+	// Get all streaming levels (the ones under "Persistent Level" in the "Levels" tab)
+	for (auto& level : lsm_->GetAllLevels())
+	{
+		if (!level.Value)
 			continue;
 
-		// TODO: It's bad to compare by name, change this
-		// World reference in editor did not work well
-		const FString level_name = FPackageName::GetShortName(level_stream->PackageNameToLoad);
-		if (level_name.Compare("ObjectLevel") == 0)
+		if (level.Key == ALevelStreamManager::OBJECT)
 		{
 			// Change visibility on items depending on which dimension is current 
-			// TODO: Figure out if there should be two different actors/props, or if we just need to change material
-			const TArray<AActor*> actors = level_stream->GetLoadedLevel()->Actors;
+			const TArray<AActor*> actors = level.Value->GetLoadedLevel()->Actors;
 			for (AActor* actor : actors)
 			{
 				if (!actor)
@@ -50,7 +56,7 @@ void UTraverseComponent::TraverseDimension()
 
 		// Traverse
 		else
-			level_stream->SetShouldBeVisible(!level_stream->ShouldBeVisible());
+			level.Value->SetShouldBeVisible(!level.Value->ShouldBeVisible());
 	}
 
 	// Set the current dimension to the other dimension
@@ -61,21 +67,36 @@ void UTraverseComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// This is kind of WET but oh well
-	// https://en.wikipedia.org/wiki/Don%27t_repeat_yourself
-	const TArray<ULevelStreaming*> level_streams = GetWorld()->GetStreamingLevels();
-	for (ULevelStreaming* level_stream : level_streams)
+	if (!lsm_bp_)
 	{
-		const FString level_name = FPackageName::GetShortName(level_stream->PackageNameToLoad);
+		UE_LOG(LogTemp, Error, TEXT("Level manager not set in CH_Player->traverse_component_->LevelManager!"));
+		return;
+	}
 
-		// Set visibility on each stream to match the starting dimension
-		if (level_name.Compare("Past") == 0)
-			level_stream->SetShouldBeVisible(false);
-		else if (level_name.Compare("Present") == 0)
-			level_stream->SetShouldBeVisible(true);
-		else if (level_name.Compare("ObjectLevel") == 0)
+	lsm_ = Cast<ALevelStreamManager>(GetWorld()->SpawnActor<AActor>(lsm_bp_, FVector::ZeroVector, FRotator::ZeroRotator));
+	if (!lsm_)
+		return;
+
+	// TODO: 
+	// Find a better place to load all levels
+	lsm_->LoadAllLevels();
+
+	for (auto& level : lsm_->GetAllLevels())
+	{
+		if (!level.Value)
+			continue;
+		if (!level.Value->IsLevelLoaded())
 		{
-			const TArray<AActor*> actors = level_stream->GetLoadedLevel()->Actors;
+			UE_LOG(LogTemp, Error, TEXT("Level %s is not loaded! Make sure to set the streaming method to always loaded!"), 
+				*FPackageName::GetShortName(level.Value->PackageNameToLoad.ToString()));
+			continue;
+		}
+
+		if (level.Key == ALevelStreamManager::PAST)
+			level.Value->SetShouldBeVisible(false);
+		else if (level.Key == ALevelStreamManager::OBJECT)
+		{
+			const TArray<AActor*> actors = level.Value->GetLoadedLevel()->Actors;
 			for (AActor* actor : actors)
 			{
 				if (!actor)
@@ -86,61 +107,49 @@ void UTraverseComponent::BeginPlay()
 				if (!actor->HasValidRootComponent())
 					continue;
 
-				// Get all components in the actor, max 3 (root, item, overlap)
-				TArray<UActorComponent*, TInlineAllocator<3>> components;
+				// Get all components in the actor, max 2 (root, item)
+				TArray<UActorComponent*, TInlineAllocator<2>> components;
 				actor->GetComponents(components);
 
 				for (auto* component : components)
 				{
 					UPrimitiveComponent* primitive_comp = Cast<UPrimitiveComponent>(component);
-					if(!primitive_comp)
+					if (!primitive_comp)
 						continue;
-
-					// Components with the tag "Overlap" should ALWAYS be QueryOnly
-					if (component->ComponentHasTag("Overlap"))
-					{
-						primitive_comp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-						continue;
-					}
 
 					if (actor->ActorHasTag("Past"))
 					{
-						primitive_comp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+						primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
 						actor->SetActorHiddenInGame(true);
 					}
 
-					else if (actor->ActorHasTag("Present"))
+					else 
 					{
-						primitive_comp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics); // change this to physics only if we dont want to place clock on objects
+						primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
 						actor->SetActorHiddenInGame(false);
 					}
+
+					component->OnActorEnableCollisionChanged(); // I don't know if I need this
 				}
 			}
 		}
-
-		level_stream->bShouldBlockOnLoad = true;
-		level_stream->BroadcastLevelLoadedStatus(GetWorld(), level_stream->GetFName(), true);
 	}
 }
 
 void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
 {
-	// Get all components in the actor, max 3 (root, item, overlap)
-	TArray<UActorComponent*, TInlineAllocator<3>> components;
+	// Get all components in the actor, max 2 (root, item)
+	TArray<UActorComponent*, TInlineAllocator<2>> components;
 	actor->GetComponents(components);
 
+	// We will call SetActorHiddenInGame several times if
+	// If we have more than 1 component (excluding root), and the components have several items with the same tag
+	// That is okay as SetActorHiddenInGame() checks if the new hidden is equal to the current hidden
 	for (auto* component : components)
 	{
 		UPrimitiveComponent* primitive_comp = Cast<UPrimitiveComponent>(component);
 		if (!primitive_comp)
 			continue;
-
-		// Components with the tag "Overlap" should ALWAYS be QueryOnly
-		if (!component->ComponentHasTag("Overlap"))
-		{
-			primitive_comp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-			continue;
-		}
 
 		switch (dimension_)
 		{
@@ -148,12 +157,12 @@ void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
 		{
 			if (actor->ActorHasTag("Past"))
 			{
-				primitive_comp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
 				actor->SetActorHiddenInGame(true);
 			}
 			else if (actor->ActorHasTag("Present"))
 			{
-				primitive_comp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+				primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
 				actor->SetActorHiddenInGame(false);
 			}
 			break;
@@ -162,12 +171,12 @@ void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
 		{
 			if (actor->ActorHasTag("Past"))
 			{
-				primitive_comp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+				primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
 				actor->SetActorHiddenInGame(false);
 			}
 			else if (actor->ActorHasTag("Present"))
 			{
-				primitive_comp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
 				actor->SetActorHiddenInGame(true);
 			}
 			break;
@@ -175,5 +184,7 @@ void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
 		default:
 			break;
 		}
+
+		component->OnActorEnableCollisionChanged();
 	}
 }

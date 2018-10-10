@@ -8,20 +8,35 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/InputSettings.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "PuzzleSystem/Components/InteractComponent.h"
+#include "PuzzleSystem/Components/InventoryComponent.h"
 
 #include "Traverser/TraverseComponent.h"
+#include "TimeClock/ClockComponent.h"
 
 #include "UObject/ConstructorHelpers.h"
 
 AFP_Character::AFP_Character()
 {
-	// Set up Capsule
+	// Setup Capsule
 	const float capsule_radius = 55.0f;
 	const float capsule_height = 96.0f;
 	GetCapsuleComponent()->InitCapsuleSize(capsule_radius, capsule_height);
 
+	// Setup camera
+	const FVector cam_offset(-39.56, 1.75, 64.0f);
+	camera_component_ = CreateDefaultSubobject<UCameraComponent>(TEXT("FP_Camera"));
+	camera_component_->SetupAttachment(GetCapsuleComponent());
+	camera_component_->RelativeLocation = cam_offset;
+
+	// Setup movement
 	movement_component_ = GetCharacterMovement();
+
+	// Setup specific components
 	traverse_component_ = CreateDefaultSubobject<UTraverseComponent>(TEXT("TraverseComponent"));
+	clock_component_ = CreateDefaultSubobject<UClockComponent>(TEXT("ClockComponent"));
+	interactComponent = CreateDefaultSubobject<UInteractComponent>(TEXT("InteractComponent"));
+	inventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
 }
 
 void AFP_Character::BeginPlay()
@@ -49,7 +64,7 @@ void AFP_Character::SetupPlayerInputComponent(UInputComponent* input_component)
 	// Specific input
 	input_component->BindAction("Traverse", IE_Pressed, this, &AFP_Character::TraverseDimension);
 	input_component->BindAction("PlaceClock", IE_Pressed, this, &AFP_Character::PlaceClock);
-	input_component->BindAction("PickupClock", IE_Pressed, this, &AFP_Character::PickupClock); // this should preferably be regular pickup input 
+	input_component->BindAction("Interact", IE_Pressed, this, &AFP_Character::Interact);
 
 }
 
@@ -89,10 +104,23 @@ void AFP_Character::TraverseDimension()
 
 void AFP_Character::PlaceClock()
 {
+	if (!clock_component_->ThrowClock())
+		return;
+
 	traverse_component_->SetTraverseAllowed(false);
 }
 
 void AFP_Character::PickupClock()
 {
+	if (!clock_component_->PickUpClock())
+		return;
+
 	traverse_component_->SetTraverseAllowed(true);
+}
+
+void AFP_Character::Interact()
+{
+	interactComponent->AttemptInteract();
+
+	PickupClock();
 }
