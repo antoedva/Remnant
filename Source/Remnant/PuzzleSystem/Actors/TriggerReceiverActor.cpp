@@ -1,10 +1,12 @@
 #include "TriggerReceiverActor.h"
 
 #include "PuzzleSystem/Components/BlueprintLinkComponent.h"
+#include "../ReceiverTargets.h"
 
 ATriggerReceiverActor::ATriggerReceiverActor()
 {
 	blueprintLink = CreateDefaultSubobject<UBlueprintLinkComponent>("BlueprintLink");
+	targets_ = CreateDefaultSubobject<UReceiverTargets>("Receiver Targets");
 }
 
 ATriggerReceiverActor::~ATriggerReceiverActor()

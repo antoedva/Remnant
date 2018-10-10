@@ -21,21 +21,7 @@ void UTriggerComponent::TriggerAllRecievers()
 			continue;
 		}
 
-		bool result;
-
-		if (broadcastChannel == ETriggerBroadcastChannel::CHANNEL_ONE)
-		{
-			result = receiver->TriggerThisReceiver(static_cast<int>(ETriggerBroadcastChannel::CHANNEL_ONE));
-		}
-		else if (broadcastChannel == ETriggerBroadcastChannel::CHANNEL_TWO)
-		{
-			result = receiver->TriggerThisReceiver(static_cast<int>(ETriggerBroadcastChannel::CHANNEL_TWO));
-		}
-		else if (broadcastChannel == ETriggerBroadcastChannel::CHANNEL_THREE)
-		{
-			result = receiver->TriggerThisReceiver(static_cast<int>(ETriggerBroadcastChannel::CHANNEL_THREE));
-		}
-
+		const bool result = receiver->TriggerThisReceiver(static_cast<int>(broadcastChannel));
 		if (!result)
 		{
 			UE_LOG(LogTemp, Error, TEXT("Failed to trigger this receiver in VolumeTriggerActor."));
