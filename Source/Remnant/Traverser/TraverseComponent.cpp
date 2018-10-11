@@ -11,7 +11,10 @@
 #include "Engine/World.h"
 #include "Engine/LevelStreaming.h"
 #include "Kismet/GameplayStatics.h"
+#include "Materials/MaterialParameterCollection.h"
+#include "Materials/MaterialParameterCollectionInstance.h"
 #include "Misc/PackageName.h"
+#include "Public/TimerManager.h"
 
 #define print(format, ...) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT(format), ##__VA_ARGS__), false)
 
@@ -66,6 +69,16 @@ void UTraverseComponent::TraverseDimension()
 void UTraverseComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (past_traverse_shader_.parameter_collection_)
+		past_traverse_shader_.material_instance_ = GetWorld()->GetParameterCollectionInstance(past_traverse_shader_.parameter_collection_);
+	else
+		UE_LOG(LogTemp, Error, TEXT("Could not find PC_Past in traverse_component_!"));
+
+	if (present_traverse_shader_.parameter_collection_)
+		present_traverse_shader_.material_instance_ = GetWorld()->GetParameterCollectionInstance(present_traverse_shader_.parameter_collection_);
+	else
+		UE_LOG(LogTemp, Error, TEXT("Could not find PC_Past in traverse_component_!"));
 
 	if (!lsm_bp_)
 	{
@@ -188,3 +201,62 @@ void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
 		component->OnActorEnableCollisionChanged();
 	}
 }
+
+//void UTraverseComponent::UpdateTraverseShaders()
+//{
+//	switch (dimension_)
+//	{
+//	case PAST:
+//	{
+//		const FCollectionScalarParameter* pc_distance = past_traverse_shader_.parameter_collection_->GetScalarParameterByName("Distance");
+//		if (!pc_distance)
+//		{
+//			UE_LOG(LogTemp, Error, TEXT("Failed to get %s in PC_Past!"), *pc_distance->ParameterName.ToString());
+//			return;
+//		}
+//
+//		//past_traverse_shader_.material_instance_->SetScalarParameterValue(pc_distance->ParameterName, past_traverse_shader_.current_distance_);
+//
+//		break;
+//	}
+//	case PRESENT:
+//	{
+//		break;
+//	}
+//	default:
+//		break;
+//	}
+//}
+//
+//void UTraverseComponent::StartShaderTimer(FTraverseShader shader)
+//{
+//	FTimerManager& tm = GetWorld()->GetTimerManager();
+//	if (tm.IsTimerActive(shader.shader_timer_handle_))
+//		return;
+//
+//	// Get parameter collections and check if they are valid
+//	const FCollectionScalarParameter* alpha_1 = past_traverse_shader_.parameter_collection_->GetScalarParameterByName("Alpha1");
+//	const FCollectionScalarParameter* alpha_2 = past_traverse_shader_.parameter_collection_->GetScalarParameterByName("Alpha2");
+//	if (!alpha_1 || !alpha_2)
+//	{
+//		UE_LOG(LogTemp, Error, TEXT("Failed to get alpha value in %s! Please checke the spelling!"), *shader.parameter_collection_->GetName());
+//		return;
+//	}
+//
+//	// Get alpha from one PC, no need to get both
+//	float current_alpha;
+//	shader.material_instance_->GetScalarParameterValue(alpha_1->ParameterName, current_alpha);
+//
+//	// Flip between 1 or 0 alpha
+//	shader.material_instance_->SetScalarParameterValue(alpha_1->ParameterName, current_alpha == 0 ? 1.0f : 0.0f);
+//	shader.material_instance_->SetScalarParameterValue(alpha_2->ParameterName, current_alpha == 0 ? 1.0f : 0.0f);
+//
+//	// Start the timer
+//	tm.SetTimer(shader.shader_timer_handle_, shader.duration_, false);
+//
+//	//tm.SetTimer(shader.shader_timer_handle_, this, &UTraverseComponent::OnShaderTimerEnd, shader.duration_, false);
+//}
+//
+//void UTraverseComponent::OnShaderTimerEnd()
+//{
+//}
