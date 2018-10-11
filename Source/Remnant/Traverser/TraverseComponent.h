@@ -10,6 +10,27 @@ class AFP_Character;
 class UWorld;
 class ULevelStreaming;
 class ALevelStreamManager;
+class UMaterialParameterCollection;
+class UMaterialParameterCollectionInstance;
+
+USTRUCT()
+struct REMNANT_API FTraverseShader
+{
+	GENERATED_BODY()
+public:
+	UMaterialParameterCollectionInstance* material_instance_;
+	float current_distance_;
+	FTimerHandle shader_timer_handle_;
+	
+	UPROPERTY(EditDefaultsOnly)
+	UMaterialParameterCollection* parameter_collection_;
+	UPROPERTY(EditDefaultsOnly)
+	float duration_;
+	UPROPERTY(EditDefaultsOnly)
+	float max_distance_;
+
+	FTraverseShader() : parameter_collection_(nullptr), material_instance_(nullptr), duration_(0), current_distance_(0), max_distance_(5000), shader_timer_handle_() {}
+};
 
 UCLASS()
 class REMNANT_API UTraverseComponent : public UActorComponent
@@ -22,6 +43,12 @@ public:
 	void TraverseDimension();
 	void SetTraverseAllowed(const bool state) { traverse_allowed_ = state; }
 	bool GetTraverseAllowed() const { return traverse_allowed_; }
+	
+	UPROPERTY(EditAnywhere)
+	FTraverseShader past_traverse_shader_;
+	
+	UPROPERTY(EditAnywhere)
+	FTraverseShader present_traverse_sahder_;
 
 protected:
 	void BeginPlay() override;
@@ -42,3 +69,5 @@ private:
 
 	void ToggleObjectVisibility(AActor* actor);
 };
+
+
