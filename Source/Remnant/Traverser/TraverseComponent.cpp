@@ -115,7 +115,7 @@ void UTraverseComponent::BeginPlay()
 				if (!actor)
 					continue;
 
-				// Skip redundant actors e.g. WorldSettings.
+				// Skip redundant actors e.g. WorldSettings
 				// Actor should never not have a root component if it's important here
 				if (!actor->HasValidRootComponent())
 					continue;
@@ -239,7 +239,7 @@ void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
 //	const FCollectionScalarParameter* alpha_2 = past_traverse_shader_.parameter_collection_->GetScalarParameterByName("Alpha2");
 //	if (!alpha_1 || !alpha_2)
 //	{
-//		UE_LOG(LogTemp, Error, TEXT("Failed to get alpha value in %s! Please checke the spelling!"), *shader.parameter_collection_->GetName());
+//		UE_LOG(LogTemp, Error, TEXT("Failed to get alpha value in %s! Please check the spelling!"), *shader.parameter_collection_->GetName());
 //		return;
 //	}
 //
