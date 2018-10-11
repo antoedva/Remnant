@@ -1,6 +1,8 @@
 #include "PickUpActor.h"
 
 #include "PuzzleSystem/Components/InventoryComponent.h"
+#include "instances/RemnantGameInstance.h"
+#include "UI/InGameUI.h"
 
 APickUpActor::APickUpActor()
 : AInteractableActorBase()
@@ -11,13 +13,13 @@ APickUpActor::APickUpActor()
 void APickUpActor::BeginPlay()
 {
 	Super::BeginPlay();
-	//gameInstanceActual = Cast<BP_Remannat_GI>(gameInstance);
 }
 
 void APickUpActor::InteractWith(UInventoryComponent* inventory)
 {
 	inventory->AddItem(this);
 
-	//gameinstance->Getw/eWidget->GetInventoryImage->setinventoryimage.
+	Cast<URemnantGameInstance>(GetGameInstance())->InGameUI->SetInventoryIcon(brush);
+
 	Destroy();
 }
