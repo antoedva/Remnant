@@ -70,15 +70,15 @@ void UTraverseComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (past_traverse_shader_.parameter_collection_)
-		past_traverse_shader_.material_instance_ = GetWorld()->GetParameterCollectionInstance(past_traverse_shader_.parameter_collection_);
-	else
-		UE_LOG(LogTemp, Error, TEXT("Could not find PC_Past in traverse_component_!"));
+	//if (past_traverse_shader_.parameter_collection_)
+	//	past_traverse_shader_.material_instance_ = GetWorld()->GetParameterCollectionInstance(past_traverse_shader_.parameter_collection_);
+	//else
+	//	UE_LOG(LogTemp, Error, TEXT("Could not find PC_Past in traverse_component_!"));
 
-	if (present_traverse_shader_.parameter_collection_)
-		present_traverse_shader_.material_instance_ = GetWorld()->GetParameterCollectionInstance(present_traverse_shader_.parameter_collection_);
-	else
-		UE_LOG(LogTemp, Error, TEXT("Could not find PC_Past in traverse_component_!"));
+	//if (present_traverse_shader_.parameter_collection_)
+	//	present_traverse_shader_.material_instance_ = GetWorld()->GetParameterCollectionInstance(present_traverse_shader_.parameter_collection_);
+	//else
+	//	UE_LOG(LogTemp, Error, TEXT("Could not find PC_Past in traverse_component_!"));
 
 	if (!lsm_bp_)
 	{
