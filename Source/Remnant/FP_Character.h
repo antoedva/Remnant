@@ -27,6 +27,8 @@ public:
 	void BeginPlay() override;
 	void SetupPlayerInputComponent(UInputComponent* input_component) override;
 
+	virtual void Tick(float deltaTime) override;
+
 	UCameraComponent* GetCameraComponent() const { return camera_component_; }
 	UTraverseComponent* GetTraverseComponent() { return traverse_component_; }
 
