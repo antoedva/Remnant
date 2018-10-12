@@ -8,6 +8,7 @@
 #include "PickUpActor.generated.h"
 
 class UInventoryComponent;
+class UInGameUI;
 
 UCLASS()
 class REMNANT_API APickUpActor : public AInteractableActorBase
@@ -32,5 +33,7 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	FSlateBrush brush;
+
+	UInGameUI* cachedInGameUI;
 
 };
