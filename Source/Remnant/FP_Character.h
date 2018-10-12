@@ -14,6 +14,7 @@ class UTraverseComponent;
 class UClockComponent;
 class UInteractComponent;
 class UInventoryComponent;
+class UInGameUI;
 
 UCLASS(config = Game)
 class REMNANT_API AFP_Character : public ACharacter
@@ -54,4 +55,6 @@ private:
 	UInteractComponent* interactComponent;
 
 	UInventoryComponent* inventoryComponent;
+
+	UInGameUI* inGameUI;
 };

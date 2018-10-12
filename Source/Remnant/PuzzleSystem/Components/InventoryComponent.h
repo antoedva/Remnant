@@ -25,6 +25,6 @@ protected:
 
 private:
 
-	TMap<FString, APickUpActor*> items;
+	APickUpActor* item;
 
 };
