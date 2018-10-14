@@ -14,6 +14,7 @@ class UTraverseComponent;
 class UClockComponent;
 class UInteractComponent;
 class UInventoryComponent;
+class UInGameUI;
 
 UCLASS(config = Game)
 class REMNANT_API AFP_Character : public ACharacter
@@ -25,6 +26,8 @@ public:
 
 	void BeginPlay() override;
 	void SetupPlayerInputComponent(UInputComponent* input_component) override;
+
+	virtual void Tick(float deltaTime) override;
 
 	UCameraComponent* GetCameraComponent() const { return camera_component_; }
 	UTraverseComponent* GetTraverseComponent() { return traverse_component_; }
@@ -54,4 +57,6 @@ private:
 	UInteractComponent* interactComponent;
 
 	UInventoryComponent* inventoryComponent;
+
+	UInGameUI* inGameUI;
 };

@@ -16,8 +16,12 @@
 
 #include "UObject/ConstructorHelpers.h"
 
+#include "UI/InGameUI.h"
+
 AFP_Character::AFP_Character()
 {
+	PrimaryActorTick.bCanEverTick = true;
+
 	// Setup Capsule
 	const float capsule_radius = 55.0f;
 	const float capsule_height = 96.0f;
@@ -37,12 +41,22 @@ AFP_Character::AFP_Character()
 	clock_component_ = CreateDefaultSubobject<UClockComponent>(TEXT("ClockComponent"));
 	interactComponent = CreateDefaultSubobject<UInteractComponent>(TEXT("InteractComponent"));
 	inventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
+
+ 	//inGameUI = CreateWidget<UInGameUI>(this, UInGameUI::StaticClass());
+ 	//inGameUI->AddToViewport(9999);
 }
 
 void AFP_Character::BeginPlay()
 {
 	Super::BeginPlay();
 
+}
+
+void AFP_Character::Tick(float deltaTime)
+{
+	Super::Tick(deltaTime);
+
+	interactComponent->TickingRaycast();
 }
 
 void AFP_Character::SetupPlayerInputComponent(UInputComponent* input_component)

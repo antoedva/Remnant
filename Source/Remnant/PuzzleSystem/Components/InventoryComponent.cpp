@@ -14,23 +14,25 @@ void UInventoryComponent::BeginPlay()
 
 bool UInventoryComponent::HasItem(FString itemName)
 {
-	return items.Contains(itemName);
+	if (item && item->GetName() == itemName)
+	{
+		return true;
+	}
+
+	return false;
 }
 
 bool UInventoryComponent::HasItem(APickUpActor* pickUp)
 {
-	for (const TPair<FString, APickUpActor*> pair : items)
+	if (item && pickUp == item)
 	{
-		if (pair.Value == pickUp)
-		{
-			return true;
-		}
+		return true;
 	}
-	
+
 	return false;
 }
 
 void UInventoryComponent::AddItem(APickUpActor* pickUp)
 {
-	items.Emplace(pickUp->GetName(), pickUp);
+	item = pickUp;
 }

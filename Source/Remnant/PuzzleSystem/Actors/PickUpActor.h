@@ -2,10 +2,13 @@
 
 #include "CoreMinimal.h"
 #include "PuzzleSystem/Actors/InteractableActorBase.h"
+
+#include "Styling/SlateBrush.h"
+
 #include "PickUpActor.generated.h"
 
 class UInventoryComponent;
-class UGameInstance;
+class UInGameUI;
 
 UCLASS()
 class REMNANT_API APickUpActor : public AInteractableActorBase
@@ -26,8 +29,11 @@ protected:
 private:
 
 	UPROPERTY(EditAnywhere)
-	UGameInstance* gameInstance;
+	FString itemName;
 
 	UPROPERTY(EditAnywhere)
-	FString itemName;
+	FSlateBrush brush;
+
+	UInGameUI* cachedInGameUI;
+
 };
