@@ -8,15 +8,20 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/InputSettings.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "PuzzleSystem/InteractComponent.h"
+#include "PuzzleSystem/Components/InteractComponent.h"
+#include "PuzzleSystem/Components/InventoryComponent.h"
 
 #include "Traverser/TraverseComponent.h"
 #include "TimeClock/ClockComponent.h"
 
 #include "UObject/ConstructorHelpers.h"
 
+#include "UI/InGameUI.h"
+
 AFP_Character::AFP_Character()
 {
+	PrimaryActorTick.bCanEverTick = true;
+
 	// Setup Capsule
 	const float capsule_radius = 55.0f;
 	const float capsule_height = 96.0f;
@@ -35,12 +40,23 @@ AFP_Character::AFP_Character()
 	traverse_component_ = CreateDefaultSubobject<UTraverseComponent>(TEXT("TraverseComponent"));
 	clock_component_ = CreateDefaultSubobject<UClockComponent>(TEXT("ClockComponent"));
 	interactComponent = CreateDefaultSubobject<UInteractComponent>(TEXT("InteractComponent"));
+	inventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
+
+ 	//inGameUI = CreateWidget<UInGameUI>(this, UInGameUI::StaticClass());
+ 	//inGameUI->AddToViewport(9999);
 }
 
 void AFP_Character::BeginPlay()
 {
 	Super::BeginPlay();
 
+}
+
+void AFP_Character::Tick(float deltaTime)
+{
+	Super::Tick(deltaTime);
+
+	interactComponent->TickingRaycast();
 }
 
 void AFP_Character::SetupPlayerInputComponent(UInputComponent* input_component)
