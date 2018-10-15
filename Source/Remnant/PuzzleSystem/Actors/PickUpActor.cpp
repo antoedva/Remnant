@@ -13,13 +13,15 @@ APickUpActor::APickUpActor()
 void APickUpActor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	cachedInGameUI = Cast<URemnantGameInstance>(GetGameInstance())->InGameUI;
 }
 
 void APickUpActor::InteractWith(UInventoryComponent* inventory)
 {
 	inventory->AddItem(this);
 
-	Cast<URemnantGameInstance>(GetGameInstance())->InGameUI->SetInventoryIcon(brush);
+	cachedInGameUI->SetInventoryIcon(brush);
 
 	Destroy();
 }

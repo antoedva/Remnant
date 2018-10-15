@@ -17,6 +17,7 @@ public:
 	virtual void NativeConstruct() override;
 
 	void SetInventoryIcon(FSlateBrush& brush);
+	void SetCrosshairBrush(FSlateBrush& brush);
 
 	void ResetInventoryIcon();
 
@@ -24,5 +25,8 @@ private:
 
 	UPROPERTY()
 	UImage* inventoryIcon;
+
+	UPROPERTY()
+	UImage* crosshair;
 
 };
