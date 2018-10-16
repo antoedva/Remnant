@@ -2,10 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "Styling/SlateBrush.h"
 #include "InGameUI.generated.h"
 
 class UImage;
+class UTextBlock;
 
 UCLASS()
 class REMNANT_API UInGameUI : public UUserWidget
@@ -16,13 +16,13 @@ public:
 
 	virtual void NativeConstruct() override;
 
-	void SetInventoryIcon(FSlateBrush& brush);
+	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
+	UImage* crosshairImage;
 
-	void ResetInventoryIcon();
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UImage* inventoryImage;
 
-private:
-
-	UPROPERTY()
-	UImage* inventoryIcon;
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UTextBlock* pickupText;
 
 };

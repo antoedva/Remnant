@@ -5,8 +5,11 @@
 #include "FP_Character.h"
 #include "PuzzleSystem/Actors/InteractableActorBase.h"
 #include "PuzzleSystem/Components/InventoryComponent.h"
-
-#include "DrawDebugHelpers.h"
+#include "UI/InGameUI.h"
+#include "Components/Image.h"
+#include "Components/TextBlock.h"
+#include "FPPlayerController.h"
+#include "PuzzleSystem/Actors/PickUpActor.h"
 
 UInteractComponent::UInteractComponent()
 {
@@ -17,6 +20,7 @@ void UInteractComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	currentHitActor = nullptr;
 	ignoreActor = Cast<AFP_Character>(GetOwner());
 	if (!ignoreActor)
 	{
@@ -24,26 +28,74 @@ void UInteractComponent::BeginPlay()
 	}
 
 	cachedInventoryComponent = GetOwner()->FindComponentByClass<UInventoryComponent>();
+	cachedInGameUI = Cast<AFPPlayerController>(GetWorld()->GetFirstPlayerController())->inGameUI;
 }
 
-void UInteractComponent::AttemptInteract()
+void UInteractComponent::TickingRaycast()
 {
 	FHitResult hitResult;
 	bool didRaycastHit = DoRaycast(OUT hitResult);
 
 	if (didRaycastHit)
 	{
-		AInteractableActorBase* interactableActor = Cast<AInteractableActorBase>(hitResult.GetActor());
-		if (interactableActor)
+		if (!currentHitActor)
 		{
-			if (cachedInventoryComponent)
+			currentHitActor = hitResult.GetActor();
+			UInGameUI* ui = Cast<AFPPlayerController>(GetWorld()->GetFirstPlayerController())->inGameUI;
+			if (ui)
 			{
-				interactableActor->InteractWith(cachedInventoryComponent);
+				if (ui->crosshairImage)
+				{
+					ui->crosshairImage->SetOpacity(1.0f);
+				}
+
+				if (ui->pickupText)
+				{
+					FText pickupText = FText::FromString(Cast<APickUpActor>(currentHitActor)->GetName());
+					ui->pickupText->SetText(pickupText);
+				}
 			}
-			else
+		}
+	}
+	else
+	{
+		if (currentHitActor)
+		{
+			currentHitActor = nullptr;
+			UInGameUI* ui = Cast<AFPPlayerController>(GetWorld()->GetFirstPlayerController())->inGameUI;
+			if (ui)
 			{
-				UE_LOG(LogTemp, Error, TEXT("variable cachedInventoryComponent in InteractComponent is nullptr!"));
+				if (ui->crosshairImage)
+				{
+					ui->crosshairImage->SetOpacity(0.2f);
+				}
+
+				if (ui->pickupText)
+				{
+					ui->pickupText->SetText(FText::FromString(""));
+				}
 			}
+		}
+	}
+}
+
+void UInteractComponent::AttemptInteract()
+{
+	if (!currentHitActor)
+	{
+		return;
+	}
+
+	AInteractableActorBase* interactableActor = Cast<AInteractableActorBase>(currentHitActor);
+	if (interactableActor)
+	{
+		if (cachedInventoryComponent)
+		{
+			interactableActor->InteractWith(cachedInventoryComponent);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("variable cachedInventoryComponent in InteractComponent is nullptr!"));
 		}
 	}
 }
@@ -59,8 +111,6 @@ bool UInteractComponent::DoRaycast(OUT FHitResult& hitResult)
 	const FVector startOfTrace = viewpointLocation;
 	const FVector traceEnd = viewpointLocation + viewpointRotation.Vector() * interactRange;
 	const FCollisionQueryParams queryParams(TEXT(""), false, ignoreActor);
-
-	DrawDebugLine(GetWorld(), startOfTrace, traceEnd, FColor(0, 255, 0), true, 5.0f, 0.0f, 1.0f);
 
 	if (world->LineTraceSingleByChannel(OUT hitResult, startOfTrace, traceEnd, ECollisionChannel::ECC_GameTraceChannel2, queryParams))
 	{

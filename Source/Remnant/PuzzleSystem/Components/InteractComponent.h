@@ -10,6 +10,7 @@
 
 class AFP_Character;
 class UInventoryComponent;
+class UInGameUI;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class REMNANT_API UInteractComponent : public UActorComponent
@@ -20,6 +21,7 @@ public:
 	
 	UInteractComponent();
 
+	void TickingRaycast();
 	void AttemptInteract();
 
 protected:
@@ -31,10 +33,12 @@ private:
 	bool DoRaycast(FHitResult& hitResult);
 
 	AFP_Character* ignoreActor;
+	AActor* currentHitActor;
 
 	UPROPERTY(EditAnywhere)
 	float interactRange;
 
 	UInventoryComponent* cachedInventoryComponent;
+	UInGameUI* cachedInGameUI;
 
 };
