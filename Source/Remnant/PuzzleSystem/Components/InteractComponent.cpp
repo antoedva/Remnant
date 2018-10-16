@@ -6,7 +6,10 @@
 #include "PuzzleSystem/Actors/InteractableActorBase.h"
 #include "PuzzleSystem/Components/InventoryComponent.h"
 #include "UI/InGameUI.h"
-#include "instances/RemnantGameInstance.h"
+#include "Components/Image.h"
+#include "Components/TextBlock.h"
+#include "FPPlayerController.h"
+#include "PuzzleSystem/Actors/PickUpActor.h"
 
 UInteractComponent::UInteractComponent()
 {
@@ -25,12 +28,7 @@ void UInteractComponent::BeginPlay()
 	}
 
 	cachedInventoryComponent = GetOwner()->FindComponentByClass<UInventoryComponent>();
-	cachedInGameUI = Cast<URemnantGameInstance>(GetOwner()->GetGameInstance())->InGameUI;
-
-	if (cachedInGameUI)
-	{
-		cachedInGameUI->SetCrosshairBrush(crosshairBrush);
-	}
+	cachedInGameUI = Cast<AFPPlayerController>(GetWorld()->GetFirstPlayerController())->inGameUI;
 }
 
 void UInteractComponent::TickingRaycast()
@@ -43,15 +41,50 @@ void UInteractComponent::TickingRaycast()
 		if (!currentHitActor)
 		{
 			currentHitActor = hitResult.GetActor();
-			/*cachedInGameUI->SetCrosshairOpacity(1.0f);*/
+			UInGameUI* ui = Cast<AFPPlayerController>(GetWorld()->GetFirstPlayerController())->inGameUI;
+			if (ui)
+			{
+				if (ui->crosshairImage)
+				{
+					ui->crosshairImage->SetOpacity(1.0f);
+				}
+
+				if (ui->pickupText)
+				{
+					APickUpActor* pickupActor = Cast<APickUpActor>(currentHitActor);
+
+					if (pickupActor)
+					{
+						FText pickupText = FText::FromString(pickupActor->GetName());
+						ui->pickupText->SetText(pickupText);
+					}
+				}
+			}
 		}
 	}
 	else
 	{
 		if (currentHitActor)
 		{
+			APickUpActor* pickupActor = Cast<APickUpActor>(currentHitActor);
 			currentHitActor = nullptr;
-			/*cachedInGameUI->SetCrosshairOpacity(0.25f);*/
+			UInGameUI* ui = Cast<AFPPlayerController>(GetWorld()->GetFirstPlayerController())->inGameUI;
+			if (ui)
+			{
+				if (ui->crosshairImage)
+				{
+					ui->crosshairImage->SetOpacity(0.2f);
+				}
+
+				if (ui->pickupText)
+				{
+					if (pickupActor)
+					{
+						FText pickupText = FText::FromString("");
+						ui->pickupText->SetText(pickupText);
+					}
+				}
+			}
 		}
 	}
 }

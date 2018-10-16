@@ -16,8 +16,6 @@
 
 #include "UObject/ConstructorHelpers.h"
 
-#include "UI/InGameUI.h"
-
 AFP_Character::AFP_Character()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -41,9 +39,6 @@ AFP_Character::AFP_Character()
 	clock_component_ = CreateDefaultSubobject<UClockComponent>(TEXT("ClockComponent"));
 	interactComponent = CreateDefaultSubobject<UInteractComponent>(TEXT("InteractComponent"));
 	inventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
-
- 	//inGameUI = CreateWidget<UInGameUI>(this, UInGameUI::StaticClass());
- 	//inGameUI->AddToViewport(9999);
 }
 
 void AFP_Character::BeginPlay()
@@ -79,6 +74,7 @@ void AFP_Character::SetupPlayerInputComponent(UInputComponent* input_component)
 	input_component->BindAction("Traverse", IE_Pressed, this, &AFP_Character::TraverseDimension);
 	input_component->BindAction("PlaceClock", IE_Pressed, this, &AFP_Character::PlaceClock);
 	input_component->BindAction("Interact", IE_Pressed, this, &AFP_Character::Interact);
+	input_component->BindAction("Testa", IE_Pressed, this, &AFP_Character::Testa);
 
 }
 
@@ -137,4 +133,9 @@ void AFP_Character::Interact()
 	interactComponent->AttemptInteract();
 
 	PickupClock();
+}
+
+void AFP_Character::Testa()
+{
+	traverse_component_->Testa();
 }
