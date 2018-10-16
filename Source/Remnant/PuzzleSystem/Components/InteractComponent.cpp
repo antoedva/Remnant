@@ -51,8 +51,13 @@ void UInteractComponent::TickingRaycast()
 
 				if (ui->pickupText)
 				{
-					FText pickupText = FText::FromString(Cast<APickUpActor>(currentHitActor)->GetName());
-					ui->pickupText->SetText(pickupText);
+					APickUpActor* pickupActor = Cast<APickUpActor>(currentHitActor);
+
+					if (pickupActor)
+					{
+						FText pickupText = FText::FromString(pickupActor->GetName());
+						ui->pickupText->SetText(pickupText);
+					}
 				}
 			}
 		}
@@ -61,6 +66,7 @@ void UInteractComponent::TickingRaycast()
 	{
 		if (currentHitActor)
 		{
+			APickUpActor* pickupActor = Cast<APickUpActor>(currentHitActor);
 			currentHitActor = nullptr;
 			UInGameUI* ui = Cast<AFPPlayerController>(GetWorld()->GetFirstPlayerController())->inGameUI;
 			if (ui)
@@ -72,7 +78,11 @@ void UInteractComponent::TickingRaycast()
 
 				if (ui->pickupText)
 				{
-					ui->pickupText->SetText(FText::FromString(""));
+					if (pickupActor)
+					{
+						FText pickupText = FText::FromString("");
+						ui->pickupText->SetText(pickupText);
+					}
 				}
 			}
 		}
