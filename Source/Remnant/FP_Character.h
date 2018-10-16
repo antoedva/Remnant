@@ -41,7 +41,6 @@ protected:
 	void TraverseDimension();
 	void PlaceClock();
 	void Interact();
-	
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
