@@ -67,7 +67,7 @@ public:
 	TSubclassOf<AActor> sphere_bp_;
 
 
-	void Testa();
+	void SpawnSphere();
 
 protected:
 	void BeginPlay() override;
@@ -95,10 +95,10 @@ private:
 	USphereComponent* sphere_collision_;
 	float current_distance_ = 0.0f;
 
-	TMap<int, TArray<AActor*>> all_arrays_;
+	TMap<int, TArray<AActor*>> level_actor_arrays_;
 
 	void SortActors(AActor* player, TArray<AActor*> array_to_sort, TArray<AActor*>& output);
-	bool RenameMe();
+	bool UpdateLevelObjects();
 	bool ChangeActorCollision();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Debug")

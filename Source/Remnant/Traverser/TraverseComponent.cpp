@@ -66,10 +66,10 @@ void UTraverseComponent::TraverseDimension()
 				level.Value->SetShouldBeVisible(!level.Value->ShouldBeVisible());
 		}
 		else
-			all_arrays_.Add(level.Key, actors);
+			level_actor_arrays_.Add(level.Key, actors);
 	}
 
-	Testa();
+	SpawnSphere();
 	past_start_.Broadcast();
 	present_start_.Broadcast();
 
@@ -77,14 +77,14 @@ void UTraverseComponent::TraverseDimension()
 	dimension_ = dimension_ == PAST ? PRESENT : PAST;
 }
 
-void UTraverseComponent::Testa()
+void UTraverseComponent::SpawnSphere()
 {
 	if (!sphere_bp_ || sphere_)
 		return;
 
 	sphere_ = GetWorld()->SpawnActor<AActor>(sphere_bp_, FVector(GetOwner()->GetActorLocation()), FRotator(0.0f));
 	sphere_->SetActorScale3D(FVector(0.0f));
-	RenameMe();
+	UpdateLevelObjects();
 }
 
 void UTraverseComponent::BeginPlay()
@@ -187,7 +187,7 @@ void UTraverseComponent::TickComponent(float delta_time, ELevelTick tick_type, F
 
 	if (sphere_)
 	{
-		if (!RenameMe())
+		if (!UpdateLevelObjects())
 			return;
 
 		// TODO:
@@ -318,7 +318,7 @@ void UTraverseComponent::SortActors(AActor* player, TArray<AActor*> array_to_sor
 	output = array_to_sort;
 }
 
-bool UTraverseComponent::RenameMe()
+bool UTraverseComponent::UpdateLevelObjects()
 {
 	if (ChangeActorCollision())
 		return true;
@@ -334,7 +334,7 @@ bool UTraverseComponent::ChangeActorCollision()
 {
 	bool is_empty[3] = { false, false, false };
 
-	for (auto& a : all_arrays_)
+	for (auto& a : level_actor_arrays_)
 	{
 		if (a.Value.Num() == 0)
 		{
@@ -348,7 +348,7 @@ bool UTraverseComponent::ChangeActorCollision()
 			if (!actor)
 				continue;
 
-			// Go inside if distance is more than 20k, we won't ever see those actors either way
+			// Go inside if distance is more than 10k, we won't ever see those actors either way
 			if (actor->GetDistanceTo(GetOwner()) <= current_distance_ || actor->GetDistanceTo(GetOwner()) > 10000.0f)
 			{
 				// Check if the current actor is a light
