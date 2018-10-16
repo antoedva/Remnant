@@ -4,12 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "../LevelStreamManager.h"
+
 #include "TraverseComponent.generated.h"
 
 class AFP_Character;
 class UWorld;
-class ULevelStreaming;
-class ALevelStreamManager;
+//class ULevelStreaming;
+//class ALevelStreamManager;
 class UMaterialParameterCollection;
 class UMaterialParameterCollectionInstance;
 class USphereComponent;
@@ -95,7 +97,7 @@ private:
 	USphereComponent* sphere_collision_;
 	float current_distance_ = 0.0f;
 
-	TMap<int, TArray<AActor*>> level_actor_arrays_;
+	TMap<LevelID, TArray<AActor*>> level_actor_arrays_;
 
 	void SortActors(AActor* player, TArray<AActor*> array_to_sort, TArray<AActor*>& output);
 	bool UpdateLevelObjects();

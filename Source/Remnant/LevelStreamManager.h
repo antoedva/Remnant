@@ -7,20 +7,42 @@
 #include "Engine/LevelStreaming.h"
 #include "LevelStreamManager.generated.h"
 
+UENUM()
+enum class LevelID
+{
+	OBJECT = 0,
+	PAST,
+	PRESENT
+};
+
+struct FLevel
+{
+	FLevel() = default;
+	FLevel(ULevelStreaming* stream, FBox box, LevelID id) : level_stream_(stream), level_bounds_(box), id_(id) {}
+	~FLevel() { if(level_stream_) delete level_stream_; }
+
+	ULevelStreaming* GetLevelStream() { return level_stream_; }
+	
+	void SetLevelBounds(const FBox& bounds) { level_bounds_ = bounds; }
+	FBox GetLeveLBounds() const { return level_bounds_; }
+
+	void SetID(LevelID id) { id_ = id; }
+	LevelID GetID() const { return id_; }
+
+private:
+	ULevelStreaming* level_stream_;
+	FBox level_bounds_;
+	LevelID id_;
+};
+
 UCLASS()
 class REMNANT_API ALevelStreamManager : public AActor
 {
 	GENERATED_BODY()
 	
 public:
-	enum LevelID
-	{
-		OBJECT = 0,
-		PAST,
-		PRESENT
-	};
-
 	ALevelStreamManager();
+	void Destroyed() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Level Streaming")
 	bool LoadAllLevels();
@@ -30,9 +52,9 @@ public:
 	FORCEINLINE void HideLevel(ULevelStreaming* level) { level->SetShouldBeVisible(false); }
 	FORCEINLINE void ShowLevel(ULevelStreaming* level) { level->SetShouldBeVisible(false); }
 
-	ULevelStreaming* GetLevel(LevelID id);
-	const TMap<LevelID, ULevelStreaming*> GetAllLevels() const { return level_streams_; }
+	FLevel* GetLevel(LevelID id);
+	const TMap<LevelID, FLevel*> GetAllLevels() const { return level_streams_; }
 
 private:
-	TMap<LevelID, ULevelStreaming*> level_streams_;
+	TMap<LevelID, FLevel*> level_streams_;
 };

@@ -2,8 +2,7 @@
 
 #include "TraverseComponent.h"
 #include "../FP_Character.h"
-#include "../LevelStreamManager.h"
-#include "../LevelStreamManager.h"
+//#include "../LevelStreamManager.h"
 #include "Components/TimelineComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -11,13 +10,14 @@
 #include "DimensionTrigger.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
-#include "Engine/LevelStreaming.h"
+//#include "Engine/LevelStreaming.h"
 #include "Kismet/GameplayStatics.h"
 #include "Materials/MaterialParameterCollection.h"
 #include "Materials/MaterialParameterCollectionInstance.h"
 #include "Misc/PackageName.h"
 #include "Public/TimerManager.h"
 #include "Engine/Light.h"
+#include "Engine/LevelBounds.h"
 
 #define print(format, ...) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT(format), ##__VA_ARGS__), false)
 
@@ -44,11 +44,16 @@ void UTraverseComponent::TraverseDimension()
 	{
 		if (!level.Value)
 			continue;
-		const TArray<AActor*> actors = level.Value->GetLoadedLevel()->Actors;
+		
+		ULevelStreaming* stream = level.Value->GetLevelStream();
+		if (!stream)
+			continue;
+
+		const TArray<AActor*> actors = stream->GetLoadedLevel()->Actors;
 
 		if (use_old_traverse_)
 		{
-			if (level.Key == ALevelStreamManager::OBJECT)
+			if (level.Key == LevelID::OBJECT)
 			{
 				// Change visibility on items depending on which dimension is current 
 				for (AActor* actor : actors)
@@ -63,7 +68,7 @@ void UTraverseComponent::TraverseDimension()
 				}
 			}
 			else
-				level.Value->SetShouldBeVisible(!level.Value->ShouldBeVisible());
+				stream->SetShouldBeVisible(!stream->ShouldBeVisible());
 		}
 		else
 			level_actor_arrays_.Add(level.Key, actors);
@@ -109,19 +114,24 @@ void UTraverseComponent::BeginPlay()
 	{
 		if (!level.Value)
 			continue;
-		if (!level.Value->IsLevelLoaded())
+		
+		ULevelStreaming* stream = level.Value->GetLevelStream();
+		if (!stream)
+			continue;
+		
+		if (!stream->IsLevelLoaded())
 		{
 			UE_LOG(LogTemp, Error, TEXT("Level %s is not loaded! Make sure to set the streaming method to always loaded!"),
-				*FPackageName::GetShortName(level.Value->PackageNameToLoad.ToString()));
+				*FPackageName::GetShortName(stream->PackageNameToLoad.ToString()));
 			continue;
 		}
 
-		const TArray<AActor*> actors = level.Value->GetLoadedLevel()->Actors;
+		const TArray<AActor*> actors = stream->GetLoadedLevel()->Actors;
 
-		if (level.Key == ALevelStreamManager::PAST)
+		if (level.Key == LevelID::PAST)
 		{
 			if (use_old_traverse_)
-				level.Value->SetShouldBeVisible(false);
+				stream->SetShouldBeVisible(false);
 			else
 			{
 				for (auto* actor : actors)
@@ -133,12 +143,11 @@ void UTraverseComponent::BeginPlay()
 						continue;
 					}
 					actor->SetActorEnableCollision(false);
-					//actor->SetActorHiddenInGame(true);
 				}
 			}
 		}
 
-		else if (level.Key == ALevelStreamManager::OBJECT)
+		else if (level.Key == LevelID::OBJECT)
 		{
 			for (AActor* actor : actors)
 			{
@@ -193,10 +202,11 @@ void UTraverseComponent::TickComponent(float delta_time, ELevelTick tick_type, F
 		// TODO:
 		// Calculate distance increase speed based on how long it should last
 		// It should always cover the map no matter what
+		// Timeline maybe
 		current_distance_ += 1000.0f * delta_time;
 
-		sphere_->SetActorScale3D(FVector(current_distance_ * sphere_scale_scale_)); // Something
-		//sphere_->SetActorLocation(FVector(GetOwner()->GetActorLocation().X + current_distance_, 0.0f, 0.0f));
+		sphere_->SetActorScale3D(FVector(current_distance_ * sphere_scale_scale_)); // TODO: Make it follow the actual shader line
+		sphere_->SetActorLocation(GetOwner()->GetActorLocation());
 	}
 }
 
@@ -338,7 +348,7 @@ bool UTraverseComponent::ChangeActorCollision()
 	{
 		if (a.Value.Num() == 0)
 		{
-			is_empty[a.Key] = true;
+			is_empty[(int)a.Key] = true;
 			continue;
 		}
 
@@ -348,8 +358,11 @@ bool UTraverseComponent::ChangeActorCollision()
 			if (!actor)
 				continue;
 
-			// Go inside if distance is more than 10k, we won't ever see those actors either way
-			if (actor->GetDistanceTo(GetOwner()) <= current_distance_ || actor->GetDistanceTo(GetOwner()) > 10000.0f)
+			// Go inside if distance is more than map distance / 2, we won't ever see those actors either way
+			const FBox bounds = lsm_->GetLevel(LevelID::PAST)->GetLeveLBounds();
+			const float distance_to_skip = bounds.GetExtent().Distance(bounds.Min, bounds.Max) * 0.5f;
+
+			if (actor->GetDistanceTo(GetOwner()) <= current_distance_ || actor->GetDistanceTo(GetOwner()) > distance_to_skip)
 			{
 				// Check if the current actor is a light
 				auto* light = Cast<ALight>(actor);
@@ -361,7 +374,7 @@ bool UTraverseComponent::ChangeActorCollision()
 				else if (actor->GetName().Compare("BP_Sky_Sphere") == 0 || actor->GetName().Compare("BP_Sky_Sphere_Present") == 0)
 					actor->SetActorHiddenInGame(!actor->bHidden);
 
-				else if (a.Key == ALevelStreamManager::OBJECT)
+				else if (a.Key == LevelID::OBJECT)
 				{
 					TArray<UActorComponent*, TInlineAllocator<2>> components;
 					actor->GetComponents(components);
