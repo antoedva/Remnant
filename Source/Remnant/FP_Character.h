@@ -41,6 +41,7 @@ protected:
 	void TraverseDimension();
 	void PlaceClock();
 	void Interact();
+	void Testa();
 	
 
 private:

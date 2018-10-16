@@ -23,9 +23,9 @@ public:
 	ALevelStreamManager();
 
 	UFUNCTION(BlueprintCallable, Category = "Level Streaming")
-		bool LoadAllLevels();
+	bool LoadAllLevels();
 	UFUNCTION(BlueprintCallable, Category = "Level Streaming")
-		void UnloadAllLevels();
+	void UnloadAllLevels();
 
 	FORCEINLINE void HideLevel(ULevelStreaming* level) { level->SetShouldBeVisible(false); }
 	FORCEINLINE void ShowLevel(ULevelStreaming* level) { level->SetShouldBeVisible(false); }
