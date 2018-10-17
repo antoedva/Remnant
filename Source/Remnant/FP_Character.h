@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-
 #include "FP_Character.generated.h"
 
 class UInputComponent;
@@ -14,7 +13,6 @@ class UTraverseComponent;
 class UClockComponent;
 class UInteractComponent;
 class UInventoryComponent;
-class UInGameUI;
 
 UCLASS(config = Game)
 class REMNANT_API AFP_Character : public ACharacter
@@ -43,7 +41,6 @@ protected:
 	void TraverseDimension();
 	void PlaceClock();
 	void Interact();
-	
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
@@ -57,6 +54,4 @@ private:
 	UInteractComponent* interactComponent;
 
 	UInventoryComponent* inventoryComponent;
-
-	UInGameUI* inGameUI;
 };

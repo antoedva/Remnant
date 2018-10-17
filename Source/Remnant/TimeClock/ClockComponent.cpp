@@ -168,8 +168,6 @@ TSet<AActor*> UClockComponent::GetOverlappingActors() const
 			break;
 		}
 	}
-	// TODO:
-	// Make the overlap react to base_item_ AND robots
 
 	// Keep this if we want to change how the clock works
 	// Get all actors that are already visible
