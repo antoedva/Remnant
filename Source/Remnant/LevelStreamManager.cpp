@@ -48,9 +48,10 @@ bool ALevelStreamManager::LoadAllLevels()
 
 		FVector origin;
 		FVector extent;
+		ALevelStreamingVolume* volume = nullptr;
 		for (auto* actor : level_stream->GetLoadedLevel()->Actors)
 		{
-			const auto* volume = Cast<ALevelStreamingVolume>(actor);
+			volume = Cast<ALevelStreamingVolume>(actor);
 			if (!volume)
 				continue;
 			
@@ -70,7 +71,7 @@ bool ALevelStreamManager::LoadAllLevels()
 		else if (level_name.Compare("Present") == 0)
 			id = LevelID::PRESENT;
 
-		level_streams_.Add(id, new FLevel(level_stream, box, id));
+		level_streams_.Add(id, new FLevel(level_stream, box, id, volume));
 	}
 
 	return true;

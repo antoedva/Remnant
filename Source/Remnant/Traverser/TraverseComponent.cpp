@@ -1,23 +1,29 @@
 // Belongs to Anton Edvardsson, Martin Larsson and Katrine Olsen
 
 #include "TraverseComponent.h"
+
 #include "../FP_Character.h"
-//#include "../LevelStreamManager.h"
-#include "Components/TimelineComponent.h"
+#include "DimensionTrigger.h"
+
+#include "Curves/CurveFloat.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Containers/ContainerAllocationPolicies.h"
-#include "DimensionTrigger.h"
+
 #include "Engine/Engine.h"
+#include "Engine/LevelBounds.h"
+#include "Engine/Light.h"
+#include "Engine/LevelStreamingVolume.h"
 #include "Engine/World.h"
-//#include "Engine/LevelStreaming.h"
-#include "Kismet/GameplayStatics.h"
+
 #include "Materials/MaterialParameterCollection.h"
 #include "Materials/MaterialParameterCollectionInstance.h"
+
+#include "Kismet/GameplayStatics.h"
 #include "Misc/PackageName.h"
 #include "Public/TimerManager.h"
-#include "Engine/Light.h"
-#include "Engine/LevelBounds.h"
+
+#include "UObject/ConstructorHelpers.h"
 
 #define print(format, ...) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT(format), ##__VA_ARGS__), false)
 
@@ -44,7 +50,7 @@ void UTraverseComponent::TraverseDimension()
 	{
 		if (!level.Value)
 			continue;
-		
+
 		ULevelStreaming* stream = level.Value->GetLevelStream();
 		if (!stream)
 			continue;
@@ -75,8 +81,10 @@ void UTraverseComponent::TraverseDimension()
 	}
 
 	SpawnSphere();
-	past_start_.Broadcast();
-	present_start_.Broadcast();
+	timeline_.PlayFromStart();
+	TraverseShaderStart(past_traverse_shader_);
+	TraverseShaderStart(present_traverse_shader_);
+	first_skipped_ = true;
 
 	// Set the current dimension to the other dimension
 	dimension_ = dimension_ == PAST ? PRESENT : PAST;
@@ -84,8 +92,10 @@ void UTraverseComponent::TraverseDimension()
 
 void UTraverseComponent::SpawnSphere()
 {
-	if (!sphere_bp_ || sphere_)
+	if (!sphere_bp_)
 		return;
+	if (sphere_)
+		GetWorld()->DestroyActor(sphere_);
 
 	sphere_ = GetWorld()->SpawnActor<AActor>(sphere_bp_, FVector(GetOwner()->GetActorLocation()), FRotator(0.0f));
 	sphere_->SetActorScale3D(FVector(0.0f));
@@ -95,6 +105,9 @@ void UTraverseComponent::SpawnSphere()
 void UTraverseComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	InitializeShaders();
+	SetupTimeline();
 
 	if (!lsm_bp_)
 	{
@@ -109,16 +122,18 @@ void UTraverseComponent::BeginPlay()
 	// TODO: 
 	// Find a better place to load all levels
 	lsm_->LoadAllLevels();
+	level_bounds_ = lsm_->GetLevel(LevelID::PAST)->GetLeveLBounds();
+	level_length_ = level_bounds_.GetExtent().Distance(level_bounds_.Min, level_bounds_.Max);
 
 	for (auto& level : lsm_->GetAllLevels())
 	{
 		if (!level.Value)
 			continue;
-		
+
 		ULevelStreaming* stream = level.Value->GetLevelStream();
 		if (!stream)
 			continue;
-		
+
 		if (!stream->IsLevelLoaded())
 		{
 			UE_LOG(LogTemp, Error, TEXT("Level %s is not loaded! Make sure to set the streaming method to always loaded!"),
@@ -194,19 +209,25 @@ void UTraverseComponent::TickComponent(float delta_time, ELevelTick tick_type, F
 {
 	Super::TickComponent(delta_time, tick_type, this_tick_function);
 
+	timeline_.TickTimeline(delta_time);
+
 	if (sphere_)
 	{
 		if (!UpdateLevelObjects())
 			return;
 
-		// TODO:
-		// Calculate distance increase speed based on how long it should last
-		// It should always cover the map no matter what
-		// Timeline maybe
-		current_distance_ += 1000.0f * delta_time;
+		// 2.81195079086115929701230228471 is magical yes, but it's a carefully calculated value that makes the sphere fit inside the level bounds
+		// TODO: 
+		// Move level_scale and max_scale outside of tick
+		const FVector level_scale = lsm_->GetLevel(LevelID::PAST)->GetVolume()->GetActorScale();
+		const FVector max_scale = level_scale * 2.81195079086115929701230228471f;
+		// Set sphere scale based on timeline position and length
+		const float tl_length = timeline_.GetTimelineLength();
+		const float dv = max_scale.X;
+		const float slope = dv / tl_length;
+		const float val = slope * timeline_position_;
 
-		sphere_->SetActorScale3D(FVector(current_distance_ * sphere_scale_scale_)); // TODO: Make it follow the actual shader line
-		sphere_->SetActorLocation(GetOwner()->GetActorLocation());
+		sphere_->SetActorScale3D(FVector(val));
 	}
 }
 
@@ -263,60 +284,40 @@ void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
 	}
 }
 
-void UTraverseComponent::UpdateTraverseShaders()
+void UTraverseComponent::InitializeShaders()
 {
-	switch (dimension_)
+	if (!present_traverse_shader_.parameter_collection_ || !past_traverse_shader_.parameter_collection_)
 	{
-	case PAST:
-	{
-		const FCollectionScalarParameter* pc_distance = past_traverse_shader_.parameter_collection_->GetScalarParameterByName("Distance");
-		if (!pc_distance)
-		{
-			UE_LOG(LogTemp, Error, TEXT("Failed to get %s in PC_Past!"), *pc_distance->ParameterName.ToString());
-			return;
-		}
-
-		//past_traverse_shader_.material_instance_->SetScalarParameterValue(pc_distance->ParameterName, past_traverse_shader_.current_distance_);
-
-		break;
-	}
-	case PRESENT:
-	{
-		break;
-	}
-	default:
-		break;
-	}
-}
-
-void UTraverseComponent::StartShaderTimer(FTraverseShader shader)
-{
-	//FTimerManager& tm = GetWorld()->GetTimerManager();
-	//if (tm.IsTimerActive(shader.shader_timer_handle_))
-	//	return;
-
-	// Get parameter collections and check if they are valid
-	const FCollectionScalarParameter* alpha_1 = past_traverse_shader_.parameter_collection_->GetScalarParameterByName("Alpha1");
-	const FCollectionScalarParameter* alpha_2 = past_traverse_shader_.parameter_collection_->GetScalarParameterByName("Alpha2");
-	if (!alpha_1 || !alpha_2)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to get alpha value in %s! Please check the spelling!"), *shader.parameter_collection_->GetName());
+		UE_LOG(LogTemp, Error, TEXT("Failed to get collection instance! Make sure they are added to traverse shader"));
 		return;
 	}
 
-	// Get alpha from one PC, no need to get both
-	float current_alpha;
-	shader.collection_instance_->GetScalarParameterValue(alpha_1->ParameterName, current_alpha);
+	present_traverse_shader_.collection_instance_ = GetWorld()->GetParameterCollectionInstance(present_traverse_shader_.parameter_collection_);
+	past_traverse_shader_.collection_instance_ = GetWorld()->GetParameterCollectionInstance(past_traverse_shader_.parameter_collection_);
+}
 
-	// Flip between 1 or 0 alpha
-	shader.collection_instance_->SetScalarParameterValue(alpha_1->ParameterName, current_alpha == 0 ? 1.0f : 0.0f);
-	shader.collection_instance_->SetScalarParameterValue(alpha_2->ParameterName, current_alpha == 0 ? 1.0f : 0.0f);
+void UTraverseComponent::TraverseShaderStart(FTraverseShader shader)
+{
+	auto* ci = shader.collection_instance_;
+	if (!ci)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to get collection instance! Make sure they are added to traverse shader"));
+		return;
+	}
 
-	//shader.distance_timeline_->
-	// Start the timer
-	//tm.SetTimer(shader.shader_timer_handle_, shader.duration_, false);
+	if (first_skipped_)
+	{
+		float alpha1;
+		float alpha2;
+		ci->GetScalarParameterValue(FName("Alpha 1"), alpha1);
+		ci->GetScalarParameterValue(FName("Alpha 2"), alpha2);
 
-	//tm.SetTimer(shader.shader_timer_handle_, this, &UTraverseComponent::OnShaderTimerEnd, shader.duration_, false);
+		// Flip between 1 or 0 alpha
+		ci->SetScalarParameterValue(FName("Alpha 1"), alpha1 == 0.0f ? 1.0f : 0.0f);
+		ci->SetScalarParameterValue(FName("Alpha 2"), alpha2 == 0.0f ? 1.0f : 0.0f);
+	}
+
+	ci->SetVectorParameterValue(FName("Start Position"), GetOwner()->GetActorLocation());
 }
 
 void UTraverseComponent::SortActors(AActor* player, TArray<AActor*> array_to_sort, TArray<AActor*>& output)
@@ -335,7 +336,6 @@ bool UTraverseComponent::UpdateLevelObjects()
 
 	GetWorld()->DestroyActor(sphere_);
 	sphere_ = nullptr;
-	current_distance_ = 0.0f;
 
 	return false;
 }
@@ -359,10 +359,8 @@ bool UTraverseComponent::ChangeActorCollision()
 				continue;
 
 			// Go inside if distance is more than map distance / 2, we won't ever see those actors either way
-			const FBox bounds = lsm_->GetLevel(LevelID::PAST)->GetLeveLBounds();
-			const float distance_to_skip = bounds.GetExtent().Distance(bounds.Min, bounds.Max) * 0.5f;
 
-			if (actor->GetDistanceTo(GetOwner()) <= current_distance_ || actor->GetDistanceTo(GetOwner()) > distance_to_skip)
+			if (actor->GetDistanceTo(GetOwner()) <= curve_value_ || actor->GetDistanceTo(GetOwner()) > level_length_ * 0.5f)
 			{
 				// Check if the current actor is a light
 				auto* light = Cast<ALight>(actor);
@@ -405,6 +403,34 @@ bool UTraverseComponent::ChangeActorCollision()
 
 	return true;
 }
-//void UTraverseComponent::OnShaderTimerEnd()
-//{
-//}
+
+void UTraverseComponent::SetupTimeline()
+{
+	if (!curve_)
+		return;
+
+	FOnTimelineFloat tl_cb;
+	FOnTimelineEventStatic tl_end_cb;
+
+	tl_cb.BindUFunction(this, FName("TimelineCB"));
+	tl_end_cb.BindUFunction(this, FName{ TEXT("TimelineEndCB") });
+	timeline_.AddInterpFloat(curve_, tl_cb);
+	timeline_.SetTimelineFinishedFunc(tl_end_cb);
+}
+
+void UTraverseComponent::TimelineCB()
+{
+	timeline_position_ = timeline_.GetPlaybackPosition();
+	curve_value_ = curve_->GetFloatValue(timeline_position_);
+
+	if (!past_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), curve_value_))
+		UE_LOG(LogTemp, Warning, TEXT("Failed to find distance paramater"));
+
+	if (!present_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), curve_value_))
+		UE_LOG(LogTemp, Warning, TEXT("Failed to find distance paramater"));
+}
+
+void UTraverseComponent::TimelineEndCB()
+{
+}
+

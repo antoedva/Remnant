@@ -18,7 +18,7 @@ enum class LevelID
 struct FLevel
 {
 	FLevel() = default;
-	FLevel(ULevelStreaming* stream, FBox box, LevelID id) : level_stream_(stream), level_bounds_(box), id_(id) {}
+	FLevel(ULevelStreaming* stream, FBox box, LevelID id, ALevelStreamingVolume* volume) : level_stream_(stream), level_bounds_(box), id_(id), volume_(volume) {}
 	~FLevel() { if(level_stream_) delete level_stream_; }
 
 	ULevelStreaming* GetLevelStream() { return level_stream_; }
@@ -29,10 +29,13 @@ struct FLevel
 	void SetID(LevelID id) { id_ = id; }
 	LevelID GetID() const { return id_; }
 
+	ALevelStreamingVolume* GetVolume() const { return volume_; }
+
 private:
 	ULevelStreaming* level_stream_;
 	FBox level_bounds_;
 	LevelID id_;
+	ALevelStreamingVolume* volume_;
 };
 
 UCLASS()
