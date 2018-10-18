@@ -9,6 +9,8 @@
 
 class ATriggerReceiverActor;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTriggerReceivers);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class REMNANT_API UTriggerComponent : public UActorComponent
 {
@@ -26,6 +28,8 @@ protected:
 
 private:
 
+	UPROPERTY(BlueprintAssignable)
+	FOnTriggerReceivers onTrigger;
 
 	UPROPERTY(Category = "Volume Trigger Actor", EditAnywhere)
 	TArray<ATriggerReceiverActor*> triggerReceivers;
