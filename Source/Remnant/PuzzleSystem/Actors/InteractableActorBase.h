@@ -21,12 +21,11 @@ public:
 	// Since you will override this method anyway, you can just choose to use or not to use inventory pointer in sub-class.
 	virtual void InteractWith(UInventoryComponent* optionalInventory) { UE_LOG(LogTemp, Error, TEXT("You're suppose to override this in subclass, because UE doesn't support pure virtual functions ... three dots are not enough ...")) }
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	USphereComponent* sphereComponent;
+
 protected:
 	
 	virtual void BeginPlay() override;
 
-private:
-
-	UPROPERTY(EditAnywhere)
-	USphereComponent* sphereComponent;
 };

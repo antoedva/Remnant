@@ -82,7 +82,7 @@ private:
 	TMap<LevelID, TArray<AActor*>> level_actor_arrays_;
 	void SortActors(AActor* player, TArray<AActor*> array_to_sort, TArray<AActor*>& output);
 	bool UpdateLevelObjects();
-	bool ChangeActorCollision();
+	bool ChangeActorCollision(const bool ignore_distance = false);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Debug")
 	bool use_old_traverse_ = false;
