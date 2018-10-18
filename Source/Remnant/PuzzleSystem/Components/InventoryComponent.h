@@ -18,6 +18,7 @@ public:
 	bool HasItem(FString itemName);
 	bool HasItem(APickUpActor* pickUp);
 	void AddItem(APickUpActor* pickUp);
+	void ResetInventory();
 
 protected:
 
