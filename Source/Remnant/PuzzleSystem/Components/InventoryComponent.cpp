@@ -1,6 +1,9 @@
 #include "InventoryComponent.h"
 
 #include "PuzzleSystem/Actors/PickUpActor.h"
+#include "UI/InGameUI.h"
+#include "FPPlayerController.h"
+#include "Components/Image.h"
 
 UInventoryComponent::UInventoryComponent()
 {
@@ -35,4 +38,11 @@ bool UInventoryComponent::HasItem(APickUpActor* pickUp)
 void UInventoryComponent::AddItem(APickUpActor* pickUp)
 {
 	item = pickUp;
+}
+
+void UInventoryComponent::ResetInventory()
+{
+	item = nullptr;
+	UInGameUI* ui = Cast<AFPPlayerController>(GetWorld()->GetFirstPlayerController())->inGameUI;
+	ui->inventoryImage->SetVisibility(ESlateVisibility::Hidden);
 }
