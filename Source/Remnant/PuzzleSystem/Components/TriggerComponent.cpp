@@ -27,6 +27,4 @@ void UTriggerComponent::TriggerAllRecievers()
 			UE_LOG(LogTemp, Error, TEXT("Failed to trigger this receiver in VolumeTriggerActor."));
 		}
 	}
-
-	onTrigger.Broadcast();
 }
