@@ -17,5 +17,5 @@ void AInteractableTriggerActor::BeginPlay()
 
 void AInteractableTriggerActor::InteractWith(UInventoryComponent* /*inventory*/)
 {
-	triggerComponent->TriggerAllRecievers();
+	triggerComponent->TriggerAllReceivers();
 }
