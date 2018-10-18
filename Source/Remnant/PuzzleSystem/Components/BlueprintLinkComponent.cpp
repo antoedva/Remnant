@@ -22,3 +22,15 @@ void UBlueprintLinkComponent::BroadcastToBlueprint(int channel)
 	for (unsigned i = 0; i < (int)ETriggerBroadcastChannel::ALL; ++i)
 		on_trigger_.Broadcast(i);
 }
+
+void UBlueprintLinkComponent::BroadcastToBlueprintReverse(int channel)
+{
+	if (static_cast<ETriggerBroadcastChannel>(channel) != ETriggerBroadcastChannel::ALL)
+	{
+		onTriggerReverse.Broadcast(channel);
+		return;
+	}
+
+	for (unsigned i = 0; i < (int)ETriggerBroadcastChannel::ALL; ++i)
+		onTriggerReverse.Broadcast(i);
+}

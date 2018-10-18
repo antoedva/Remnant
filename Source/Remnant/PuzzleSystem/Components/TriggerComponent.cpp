@@ -12,7 +12,7 @@ void UTriggerComponent::BeginPlay()
 	Super::BeginPlay();
 }
 
-void UTriggerComponent::TriggerAllRecievers()
+void UTriggerComponent::TriggerAllReceivers()
 {
 	for (ATriggerReceiverActor* receiver : triggerReceivers)
 	{
@@ -29,4 +29,23 @@ void UTriggerComponent::TriggerAllRecievers()
 	}
 
 	onTrigger.Broadcast();
+}
+
+void UTriggerComponent::TriggerAllReceiversReverse()
+{
+	for (ATriggerReceiverActor* receiver : triggerReceivers)
+	{
+		if (!receiver)
+		{
+			continue;
+		}
+
+		const bool result = receiver->TriggerThisReceiverReverse(static_cast<int>(broadcastChannel));
+		if (!result)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed to trigger this receiver in VolumeTriggerActor."));
+		}
+	}
+
+	onTriggerReverse.Broadcast();
 }
