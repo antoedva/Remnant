@@ -71,7 +71,7 @@ private:
 
 	ALevelStreamManager* lsm_;
 	FBox level_bounds_;
-	float level_length_;
+	float level_length_ = 0.0f;
 
 	void ToggleObjectVisibility(AActor* actor);
 	void InitializeShaders();

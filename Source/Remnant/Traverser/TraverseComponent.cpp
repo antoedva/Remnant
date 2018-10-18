@@ -139,8 +139,6 @@ void UTraverseComponent::BeginPlay()
 	// TODO: 
 	// Find a better place to load all levels
 	lsm_->LoadAllLevels();
-	level_bounds_ = lsm_->GetLevel(LevelID::PAST)->GetLeveLBounds();
-	level_length_ = level_bounds_.GetExtent().Distance(level_bounds_.Min, level_bounds_.Max);
 
 	for (auto& level : lsm_->GetAllLevels())
 	{
@@ -166,6 +164,9 @@ void UTraverseComponent::BeginPlay()
 				stream->SetShouldBeVisible(false);
 			else
 			{
+				level_bounds_ = level.Value->GetLeveLBounds();
+				level_length_ = level_bounds_.GetExtent().Distance(level_bounds_.Min, level_bounds_.Max);
+
 				for (auto* actor : actors)
 				{
 					auto* light = Cast<ALight>(actor);
@@ -458,7 +459,7 @@ void UTraverseComponent::TimelineEndCB()
 	if (!present_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), level_length_))
 		UE_LOG(LogTemp, Warning, TEXT("Failed to find distance paramater"));
 
-	
+
 	ChangeActorCollision(true);
 	if (sphere_)
 	{
