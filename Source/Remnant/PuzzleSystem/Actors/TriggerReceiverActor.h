@@ -18,6 +18,7 @@ public:
 	~ATriggerReceiverActor();
 
 	bool TriggerThisReceiver(int channel);
+	bool TriggerThisReceiverReverse(int channel);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Triggers")
 	UReceiverTargets* targets_;

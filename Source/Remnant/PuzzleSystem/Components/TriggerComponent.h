@@ -10,6 +10,7 @@
 class ATriggerReceiverActor;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTriggerReceivers);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTriggerReceiversReverse);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class REMNANT_API UTriggerComponent : public UActorComponent
@@ -20,16 +21,20 @@ public:
 
 	UTriggerComponent();
 
-	void TriggerAllRecievers();
+	void TriggerAllReceivers();
+	void TriggerAllReceiversReverse();
 
 protected:
 
 	virtual void BeginPlay() override;
 
 private:
-
+	
 	UPROPERTY(BlueprintAssignable)
 	FOnTriggerReceivers onTrigger;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnTriggerReceiversReverse onTriggerReverse;
 
 	UPROPERTY(Category = "Volume Trigger Actor", EditAnywhere)
 	TArray<ATriggerReceiverActor*> triggerReceivers;

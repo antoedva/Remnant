@@ -34,6 +34,4 @@ private:
 	UPROPERTY(EditAnywhere)
 	FSlateBrush brush;
 
-	UInGameUI* cachedInGameUI;
-
 };
