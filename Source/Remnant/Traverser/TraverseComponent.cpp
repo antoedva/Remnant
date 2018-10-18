@@ -316,8 +316,8 @@ void UTraverseComponent::InitializeShaders()
 	past_traverse_shader_.collection_instance_ = GetWorld()->GetParameterCollectionInstance(past_traverse_shader_.parameter_collection_);
 
 	// Change default alpha values of past shaders here so we can see whats going on when not playing the game
-	past_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Alpha 1"), 0.0f);
-	past_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Alpha 2"), 1.0f);
+	past_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Alpha 1"), 1.0f);
+	past_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Alpha 2"), 0.0f);
 }
 
 void UTraverseComponent::TraverseShaderStart(FTraverseShader shader)
