@@ -10,7 +10,6 @@
 
 class AFP_Character;
 class UInventoryComponent;
-class UInGameUI;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class REMNANT_API UInteractComponent : public UActorComponent
@@ -39,6 +38,5 @@ private:
 	float interactRange;
 
 	UInventoryComponent* cachedInventoryComponent;
-	UInGameUI* cachedInGameUI;
 
 };

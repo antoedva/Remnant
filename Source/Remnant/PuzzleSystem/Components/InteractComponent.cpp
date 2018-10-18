@@ -28,7 +28,6 @@ void UInteractComponent::BeginPlay()
 	}
 
 	cachedInventoryComponent = GetOwner()->FindComponentByClass<UInventoryComponent>();
-	cachedInGameUI = Cast<AFPPlayerController>(GetWorld()->GetFirstPlayerController())->inGameUI;
 }
 
 void UInteractComponent::TickingRaycast()

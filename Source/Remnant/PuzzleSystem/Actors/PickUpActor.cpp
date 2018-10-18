@@ -14,8 +14,6 @@ APickUpActor::APickUpActor()
 void APickUpActor::BeginPlay()
 {
 	Super::BeginPlay();
-
-	cachedInGameUI = Cast<AFPPlayerController>(GetWorld()->GetFirstPlayerController())->inGameUI;
 }
 
 void APickUpActor::InteractWith(UInventoryComponent* inventory)
