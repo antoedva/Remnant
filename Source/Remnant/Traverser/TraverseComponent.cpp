@@ -358,13 +358,10 @@ bool UTraverseComponent::UpdateLevelObjects()
 	if (ChangeActorCollision())
 		return true;
 
-	GetWorld()->DestroyActor(sphere_);
-	sphere_ = nullptr;
-
 	return false;
 }
 
-bool UTraverseComponent::ChangeActorCollision()
+bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 {
 	bool is_empty[3] = { false, false, false };
 
@@ -382,9 +379,8 @@ bool UTraverseComponent::ChangeActorCollision()
 			if (!actor)
 				continue;
 
-			// Go inside if distance is more than map distance / 2, we won't ever see those actors either way
-
-			if (actor->GetDistanceTo(GetOwner()) <= curve_value_ || actor->GetDistanceTo(GetOwner()) > level_length_ * 0.5f)
+			// Go inside if distance is more than map distance / 2, we won't notice the change to those either way
+			if (actor->GetDistanceTo(GetOwner()) <= curve_value_ || actor->GetDistanceTo(GetOwner()) > level_length_ * 0.5f || ignore_distance)
 			{
 				// Check if the current actor is a light
 				auto* light = Cast<ALight>(actor);
@@ -456,5 +452,18 @@ void UTraverseComponent::TimelineCB()
 
 void UTraverseComponent::TimelineEndCB()
 {
+	if (!past_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), level_length_))
+		UE_LOG(LogTemp, Warning, TEXT("Failed to find distance paramater"));
+
+	if (!present_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), level_length_))
+		UE_LOG(LogTemp, Warning, TEXT("Failed to find distance paramater"));
+
+	
+	ChangeActorCollision(true);
+	if (sphere_)
+	{
+		GetWorld()->DestroyActor(sphere_);
+		sphere_ = nullptr;
+	}
 }
 
