@@ -30,3 +30,14 @@ bool ATriggerReceiverActor::TriggerThisReceiver(int channel)
 	
 	return false;
 }
+
+bool ATriggerReceiverActor::TriggerThisReceiverReverse(int channel)
+{
+	if (blueprintLink)
+	{
+		blueprintLink->BroadcastToBlueprintReverse(channel);
+		return true;
+	}
+
+	return false;
+}
