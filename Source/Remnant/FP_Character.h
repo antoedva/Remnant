@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-
 #include "FP_Character.generated.h"
 
 class UInputComponent;
@@ -26,6 +25,8 @@ public:
 	void BeginPlay() override;
 	void SetupPlayerInputComponent(UInputComponent* input_component) override;
 
+	virtual void Tick(float deltaTime) override;
+
 	UCameraComponent* GetCameraComponent() const { return camera_component_; }
 	UTraverseComponent* GetTraverseComponent() { return traverse_component_; }
 
@@ -40,7 +41,6 @@ protected:
 	void TraverseDimension();
 	void PlaceClock();
 	void Interact();
-	
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")

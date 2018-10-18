@@ -20,6 +20,7 @@ public:
 	
 	UInteractComponent();
 
+	void TickingRaycast();
 	void AttemptInteract();
 
 protected:
@@ -31,6 +32,7 @@ private:
 	bool DoRaycast(FHitResult& hitResult);
 
 	AFP_Character* ignoreActor;
+	AActor* currentHitActor;
 
 	UPROPERTY(EditAnywhere)
 	float interactRange;

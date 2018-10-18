@@ -18,6 +18,8 @@
 
 AFP_Character::AFP_Character()
 {
+	PrimaryActorTick.bCanEverTick = true;
+
 	// Setup Capsule
 	const float capsule_radius = 55.0f;
 	const float capsule_height = 96.0f;
@@ -45,6 +47,13 @@ void AFP_Character::BeginPlay()
 
 }
 
+void AFP_Character::Tick(float deltaTime)
+{
+	Super::Tick(deltaTime);
+
+	interactComponent->TickingRaycast();
+}
+
 void AFP_Character::SetupPlayerInputComponent(UInputComponent* input_component)
 {
 	check(input_component);
@@ -65,7 +74,6 @@ void AFP_Character::SetupPlayerInputComponent(UInputComponent* input_component)
 	input_component->BindAction("Traverse", IE_Pressed, this, &AFP_Character::TraverseDimension);
 	input_component->BindAction("PlaceClock", IE_Pressed, this, &AFP_Character::PlaceClock);
 	input_component->BindAction("Interact", IE_Pressed, this, &AFP_Character::Interact);
-
 }
 
 void AFP_Character::MoveForward(float value)
