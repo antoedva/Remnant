@@ -46,8 +46,9 @@ bool ALevelStreamManager::LoadAllLevels()
 		FLatentActionInfo latent_info;
 		UGameplayStatics::LoadStreamLevel(world, full_level_name, true, true, latent_info);
 
-		FVector origin;
-		FVector extent;
+		FVector origin(0.0f);
+		FVector extent(0.0f);
+		FBox box;
 		ALevelStreamingVolume* volume = nullptr;
 		for (auto* actor : level_stream->GetLoadedLevel()->Actors)
 		{
@@ -56,9 +57,9 @@ bool ALevelStreamManager::LoadAllLevels()
 				continue;
 			
 			volume->GetActorBounds(false, origin, extent);
+			box = ALevelBounds::CalculateLevelBounds(level_stream->GetLoadedLevel()).BuildAABB(origin, extent);
 			break;
 		}
-		const FBox box = ALevelBounds::CalculateLevelBounds(level_stream->GetLoadedLevel()).BuildAABB(origin, extent);
 
 		const FString level_name = FPackageName::GetShortName(world->IsPlayInEditor() ?
 			level_stream->PackageNameToLoad.ToString() : level_stream->GetWorldAssetPackageName());

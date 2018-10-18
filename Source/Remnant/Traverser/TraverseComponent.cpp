@@ -45,20 +45,21 @@ void UTraverseComponent::TraverseDimension()
 		return;
 	}
 
-	// Get all streaming levels (the ones under "Persistent Level" in the "Levels" tab)
-	for (auto& level : lsm_->GetAllLevels())
+	// To be removed when all the traverse materials are done
+	if (use_old_traverse_)
 	{
-		if (!level.Value)
-			continue;
-
-		ULevelStreaming* stream = level.Value->GetLevelStream();
-		if (!stream)
-			continue;
-
-		const TArray<AActor*> actors = stream->GetLoadedLevel()->Actors;
-
-		if (use_old_traverse_)
+		// Get all streaming levels (the ones under "Persistent Level" in the "Levels" tab)
+		for (auto& level : lsm_->GetAllLevels())
 		{
+			if (!level.Value)
+				continue;
+
+			ULevelStreaming* stream = level.Value->GetLevelStream();
+			if (!stream)
+				continue;
+
+			const TArray<AActor*> actors = stream->GetLoadedLevel()->Actors;
+
 			if (level.Key == LevelID::OBJECT)
 			{
 				// Change visibility on items depending on which dimension is current 
@@ -76,15 +77,28 @@ void UTraverseComponent::TraverseDimension()
 			else
 				stream->SetShouldBeVisible(!stream->ShouldBeVisible());
 		}
-		else
-			level_actor_arrays_.Add(level.Key, actors);
 	}
+	// !
+	else
+	{
+		for (auto& level : lsm_->GetAllLevels())
+		{
+			if (!level.Value)
+				continue;
 
-	SpawnSphere();
-	timeline_.PlayFromStart();
-	TraverseShaderStart(past_traverse_shader_);
-	TraverseShaderStart(present_traverse_shader_);
-	first_skipped_ = true;
+			ULevelStreaming* stream = level.Value->GetLevelStream();
+			if (!stream)
+				continue;
+
+			level_actor_arrays_.Add(level.Key, stream->GetLoadedLevel()->Actors);
+		}
+
+		SpawnSphere();
+		timeline_.PlayFromStart();
+		TraverseShaderStart(past_traverse_shader_);
+		TraverseShaderStart(present_traverse_shader_);
+		first_skipped_ = true;
+	}
 
 	// Set the current dimension to the other dimension
 	dimension_ = dimension_ == PAST ? PRESENT : PAST;
@@ -106,8 +120,11 @@ void UTraverseComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	InitializeShaders();
-	SetupTimeline();
+	if (!use_old_traverse_)
+	{
+		InitializeShaders();
+		SetupTimeline();
+	}
 
 	if (!lsm_bp_)
 	{
@@ -122,8 +139,6 @@ void UTraverseComponent::BeginPlay()
 	// TODO: 
 	// Find a better place to load all levels
 	lsm_->LoadAllLevels();
-	level_bounds_ = lsm_->GetLevel(LevelID::PAST)->GetLeveLBounds();
-	level_length_ = level_bounds_.GetExtent().Distance(level_bounds_.Min, level_bounds_.Max);
 
 	for (auto& level : lsm_->GetAllLevels())
 	{
@@ -149,6 +164,9 @@ void UTraverseComponent::BeginPlay()
 				stream->SetShouldBeVisible(false);
 			else
 			{
+				level_bounds_ = level.Value->GetLeveLBounds();
+				level_length_ = level_bounds_.GetExtent().Distance(level_bounds_.Min, level_bounds_.Max);
+
 				for (auto* actor : actors)
 				{
 					auto* light = Cast<ALight>(actor);
@@ -208,6 +226,9 @@ void UTraverseComponent::BeginPlay()
 void UTraverseComponent::TickComponent(float delta_time, ELevelTick tick_type, FActorComponentTickFunction* this_tick_function)
 {
 	Super::TickComponent(delta_time, tick_type, this_tick_function);
+
+	if (use_old_traverse_)
+		return;
 
 	timeline_.TickTimeline(delta_time);
 
@@ -294,6 +315,10 @@ void UTraverseComponent::InitializeShaders()
 
 	present_traverse_shader_.collection_instance_ = GetWorld()->GetParameterCollectionInstance(present_traverse_shader_.parameter_collection_);
 	past_traverse_shader_.collection_instance_ = GetWorld()->GetParameterCollectionInstance(past_traverse_shader_.parameter_collection_);
+
+	// Change default alpha values of past shaders here so we can see whats going on when not playing the game
+	past_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Alpha 1"), 1.0f);
+	past_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Alpha 2"), 0.0f);
 }
 
 void UTraverseComponent::TraverseShaderStart(FTraverseShader shader)
@@ -334,13 +359,10 @@ bool UTraverseComponent::UpdateLevelObjects()
 	if (ChangeActorCollision())
 		return true;
 
-	GetWorld()->DestroyActor(sphere_);
-	sphere_ = nullptr;
-
 	return false;
 }
 
-bool UTraverseComponent::ChangeActorCollision()
+bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 {
 	bool is_empty[3] = { false, false, false };
 
@@ -358,9 +380,8 @@ bool UTraverseComponent::ChangeActorCollision()
 			if (!actor)
 				continue;
 
-			// Go inside if distance is more than map distance / 2, we won't ever see those actors either way
-
-			if (actor->GetDistanceTo(GetOwner()) <= curve_value_ || actor->GetDistanceTo(GetOwner()) > level_length_ * 0.5f)
+			// Go inside if distance is more than map distance / 2, we won't notice the change to those either way
+			if (actor->GetDistanceTo(GetOwner()) <= curve_value_ || actor->GetDistanceTo(GetOwner()) > level_length_ * 0.5f || ignore_distance)
 			{
 				// Check if the current actor is a light
 				auto* light = Cast<ALight>(actor);
@@ -432,5 +453,18 @@ void UTraverseComponent::TimelineCB()
 
 void UTraverseComponent::TimelineEndCB()
 {
+	if (!past_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), level_length_))
+		UE_LOG(LogTemp, Warning, TEXT("Failed to find distance paramater"));
+
+	if (!present_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), level_length_))
+		UE_LOG(LogTemp, Warning, TEXT("Failed to find distance paramater"));
+
+
+	ChangeActorCollision(true);
+	if (sphere_)
+	{
+		GetWorld()->DestroyActor(sphere_);
+		sphere_ = nullptr;
+	}
 }
 
