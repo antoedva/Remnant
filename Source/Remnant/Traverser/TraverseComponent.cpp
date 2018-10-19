@@ -390,7 +390,7 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 					light->ToggleEnabled();
 
 				// If it's a sky sphere, flip hidden, this is ugly
-				else if (actor->GetName().Compare("BP_Sky_Sphere") == 0 || actor->GetName().Compare("BP_Sky_Sphere_Present") == 0)
+				else if (actor->GetName().Compare("BP_Sky_Sphere_Past") == 0 || actor->GetName().Compare("BP_Sky_Sphere_Present") == 0)
 					actor->SetActorHiddenInGame(!actor->bHidden);
 
 				else if (a.Key == LevelID::OBJECT)
