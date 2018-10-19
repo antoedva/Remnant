@@ -20,6 +20,7 @@ void ALockedInteractableTriggerActor::InteractWith(UInventoryComponent* inventor
 	if (inventory->HasItem(requiredItemToTrigger))
 	{
 		triggerComponent->TriggerAllReceivers();
+		inventory->ResetInventory();
 	}
 	else
 	{
