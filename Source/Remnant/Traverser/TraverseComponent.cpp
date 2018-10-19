@@ -93,8 +93,8 @@ void UTraverseComponent::TraverseDimension()
 			level_actor_arrays_.Add(level.Key, stream->GetLoadedLevel()->Actors);
 		}
 
-		SpawnSphere();
 		timeline_.PlayFromStart();
+		SpawnSphere();
 		TraverseShaderStart(past_traverse_shader_);
 		TraverseShaderStart(present_traverse_shader_);
 		first_skipped_ = true;
@@ -113,7 +113,6 @@ void UTraverseComponent::SpawnSphere()
 
 	sphere_ = GetWorld()->SpawnActor<AActor>(sphere_bp_, FVector(GetOwner()->GetActorLocation()), FRotator(0.0f));
 	sphere_->SetActorScale3D(FVector(0.0f));
-	UpdateLevelObjects();
 }
 
 void UTraverseComponent::BeginPlay()
@@ -166,6 +165,9 @@ void UTraverseComponent::BeginPlay()
 			{
 				level_bounds_ = level.Value->GetLeveLBounds();
 				level_length_ = level_bounds_.GetExtent().Distance(level_bounds_.Min, level_bounds_.Max);
+
+				if(level_length_ == 0.0f)
+					UE_LOG(LogTemp, Warning, TEXT("Level length is 0! Make sure you have a level streaming volume that covers the map!"))
 
 				for (auto* actor : actors)
 				{
@@ -230,7 +232,6 @@ void UTraverseComponent::TickComponent(float delta_time, ELevelTick tick_type, F
 	if (use_old_traverse_)
 		return;
 
-	timeline_.TickTimeline(delta_time);
 
 	if (sphere_)
 	{
@@ -244,12 +245,12 @@ void UTraverseComponent::TickComponent(float delta_time, ELevelTick tick_type, F
 		const FVector max_scale = level_scale * 2.81195079086115929701230228471f;
 		// Set sphere scale based on timeline position and length
 		const float tl_length = timeline_.GetTimelineLength();
-		const float dv = max_scale.X;
-		const float slope = dv / tl_length;
+		const float slope = max_scale.X / tl_length;
 		const float val = slope * timeline_position_;
 
 		sphere_->SetActorScale3D(FVector(val));
 	}
+	timeline_.TickTimeline(delta_time);
 }
 
 void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
