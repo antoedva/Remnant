@@ -167,6 +167,9 @@ void UTraverseComponent::BeginPlay()
 				level_bounds_ = level.Value->GetLeveLBounds();
 				level_length_ = level_bounds_.GetExtent().Distance(level_bounds_.Min, level_bounds_.Max);
 
+				if(level_length_ == 0.0f)
+					UE_LOG(LogTemp, Warning, TEXT("Level length is 0! Make sure you have a level streaming volume that covers the map!"))
+
 				for (auto* actor : actors)
 				{
 					auto* light = Cast<ALight>(actor);
@@ -390,7 +393,7 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 					light->ToggleEnabled();
 
 				// If it's a sky sphere, flip hidden, this is ugly
-				else if (actor->GetName().Compare("BP_Sky_Sphere") == 0 || actor->GetName().Compare("BP_Sky_Sphere_Present") == 0)
+				else if (actor->GetName().Compare("BP_Sky_Sphere_Past") == 0 || actor->GetName().Compare("BP_Sky_Sphere_Present") == 0)
 					actor->SetActorHiddenInGame(!actor->bHidden);
 
 				else if (a.Key == LevelID::OBJECT)

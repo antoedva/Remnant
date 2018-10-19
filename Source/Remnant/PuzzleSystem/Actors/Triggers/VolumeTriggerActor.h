@@ -36,7 +36,7 @@ private:
 	UTriggerComponent* triggerComponent;
 
 	UPROPERTY(Category = "Volume Trigger Actor", EditAnywhere)
-	AActor* actorThatTriggers; // Pointer to the actor that has the ability to trigger this volume. Will most likely be the player in most instances.
+	TArray<AActor*> actorsThatTriggers; // Pointer to the actor that has the ability to trigger this volume. Will most likely be the player in most instances.
 
 	bool isActorInsideVolume;
 };
