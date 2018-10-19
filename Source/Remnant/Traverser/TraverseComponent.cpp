@@ -167,6 +167,9 @@ void UTraverseComponent::BeginPlay()
 				level_bounds_ = level.Value->GetLeveLBounds();
 				level_length_ = level_bounds_.GetExtent().Distance(level_bounds_.Min, level_bounds_.Max);
 
+				if(level_length_ == 0.0f)
+					UE_LOG(LogTemp, Warning, TEXT("Level length is 0! Make sure you have a level streaming volume that covers the map!"))
+
 				for (auto* actor : actors)
 				{
 					auto* light = Cast<ALight>(actor);

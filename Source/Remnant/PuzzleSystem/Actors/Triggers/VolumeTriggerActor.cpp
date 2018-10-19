@@ -23,32 +23,38 @@ void AVolumeTriggerActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (!actorThatTriggers)
+	if (!actorsThatTriggers.Num() == 0)
 	{
-		actorThatTriggers = GetWorld()->GetFirstPlayerController()->GetPawn();
+		actorsThatTriggers.Add(GetWorld()->GetFirstPlayerController()->GetPawn());
 	}
 }
 
 void AVolumeTriggerActor::OnOverlapBegin(AActor* overlappedActor, AActor* otherActor)
 {
-	if (actorThatTriggers)
+	for (auto* actor : actorsThatTriggers)
 	{
-		if (otherActor && otherActor == actorThatTriggers)
+		if (actor)
 		{
-			isActorInsideVolume = true;
-			triggerComponent->TriggerAllReceivers();
+			if (otherActor && otherActor == actor)
+			{
+				isActorInsideVolume = true;
+				triggerComponent->TriggerAllReceivers();
+			}
 		}
 	}
 }
 
 void AVolumeTriggerActor::OnOverlapEnd(AActor* overlappedActor, AActor* otherActor)
 {
-	if (actorThatTriggers)
+	for (auto* actor : actorsThatTriggers)
 	{
-		if (otherActor && otherActor == actorThatTriggers)
+		if (actor)
 		{
-			isActorInsideVolume = false;
-			triggerComponent->TriggerAllReceiversReverse();
+			if (otherActor && otherActor == actor)
+			{
+				isActorInsideVolume = false;
+				triggerComponent->TriggerAllReceiversReverse();
+			}
 		}
 	}
 }
