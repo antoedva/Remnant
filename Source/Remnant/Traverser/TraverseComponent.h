@@ -88,9 +88,16 @@ private:
 	bool use_old_traverse_ = false;
 
 	FTimeline timeline_;
-	UPROPERTY(EditDefaultsOnly)
+	//UPROPERTY(EditDefaultsOnly)
 	UCurveFloat* curve_;
 
+	UPROPERTY(EditDefaultsOnly)
+	float timeline_length_;
+	
+	// Don't change this!
+	UPROPERTY(EditDefaultsOnly)
+	float magic_number_ = 100.0f;
+	
 	float curve_value_;
 	float timeline_position_;
 
