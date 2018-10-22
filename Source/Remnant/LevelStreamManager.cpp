@@ -50,6 +50,7 @@ bool ALevelStreamManager::LoadAllLevels()
 		FVector extent(0.0f);
 		FBox box;
 		ALevelStreamingVolume* volume = nullptr;
+
 		for (auto* actor : level_stream->GetLoadedLevel()->Actors)
 		{
 			volume = Cast<ALevelStreamingVolume>(actor);
