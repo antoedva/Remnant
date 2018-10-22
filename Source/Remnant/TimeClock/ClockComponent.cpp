@@ -15,6 +15,9 @@
 #include "Traverser/TraverseComponent.h"
 #include "UObject/ConstructorHelpers.h"
 
+#include "Materials/MaterialParameterCollection.h"
+#include "Materials/MaterialParameterCollectionInstance.h"
+
 UClockComponent::UClockComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -25,15 +28,25 @@ bool UClockComponent::ThrowClock()
 	if (!clock_bp_ || !base_item_ || clock_)
 		return false;
 
-	FVector location(0.0f);
-	if (!GetSpawnLocation(location))
+	if (!GetSpawnLocation(spawn_location_))
 		return false;
 
-	clock_ = GetWorld()->SpawnActor<AActor>(clock_bp_, location, FRotator(0.0f));
+	clock_ = GetWorld()->SpawnActor<AActor>(clock_bp_, spawn_location_, FRotator(0.0f));
 
 	// Save our overlapped actors so we know what to remove later on
 	current_actors_in_clock_ = GetOverlappingActors();
-	RenderObjectsInClock();
+	ToggleObjectsInClock();
+
+	// TODO: Add traverse shader here
+	//auto* traverse = Cast<AFP_Character>(GetOwner())->GetTraverseComponent();
+	//if (!traverse)
+	//{
+	//	UE_LOG(LogTemp, Error, TEXT("Failed to get traverse component in ClockComponent!"));
+	//	return false;
+	//}
+
+	//StartShader(traverse->present_traverse_shader_);
+	//StartShader(traverse->past_traverse_shader_);
 
 	return true;
 }
@@ -50,7 +63,7 @@ bool UClockComponent::PickUpClock()
 	if (result.Actor != clock_)
 		return false;
 
-	StopRenderingObjectsInClock();
+	ToggleObjectsInClock();
 
 	if (!GetWorld()->DestroyActor(clock_))
 		return false;
@@ -59,6 +72,15 @@ bool UClockComponent::PickUpClock()
 
 	// Clear the set of actors
 	current_actors_in_clock_.Empty();
+
+	//auto* traverse = Cast<AFP_Character>(GetOwner())->GetTraverseComponent();
+	//if (!traverse)
+	//{
+	//	UE_LOG(LogTemp, Error, TEXT("Failed to get traverse component in ClockComponent!"));
+	//	return false;
+	//}
+	//StopShader(traverse->present_traverse_shader_);
+	//StopShader(traverse->past_traverse_shader_);
 
 	return true;
 }
@@ -105,14 +127,12 @@ bool UClockComponent::LineTrace(OUT FHitResult & result) const
 	return true;
 }
 
-void UClockComponent::RenderObjectsInClock()
+void UClockComponent::ToggleObjectsInClock()
 {
 	for (auto* actor : current_actors_in_clock_)
 	{
 		if (!actor)
 			return;
-
-		actor->SetActorHiddenInGame(actor->bHidden ? false : true);
 
 		TArray<UActorComponent*, TInlineAllocator<2>> components;
 		actor->GetComponents(components);
@@ -123,32 +143,38 @@ void UClockComponent::RenderObjectsInClock()
 			if (!primitive_component)
 				continue;
 
-			primitive_component->SetCollisionResponseToAllChannels(actor->bHidden ? ECR_Overlap : ECR_Block);
+			primitive_component->SetCollisionResponseToAllChannels(primitive_component->GetCollisionResponseToChannel(ECC_Pawn) == ECR_Block ? ECR_Overlap : ECR_Block);
 		}
 	}
 }
 
-void UClockComponent::StopRenderingObjectsInClock()
+bool UClockComponent::StartShader(FTraverseShader shader)
 {
-	for (auto* actor : current_actors_in_clock_)
+	auto* ci = shader.collection_instance_;
+	if (!ci)
 	{
-		if (!actor)
-			return;
-
-		actor->SetActorHiddenInGame(actor->bHidden ? false : true);
-
-		TArray<UActorComponent*, TInlineAllocator<2>> components;
-		actor->GetComponents(components);
-
-		for (auto* component : components)
-		{
-			auto* primitive_component = Cast<UPrimitiveComponent>(component);
-			if (!primitive_component)
-				continue;
-
-			primitive_component->SetCollisionResponseToAllChannels(actor->bHidden ? ECR_Overlap : ECR_Block);
-		}
+		UE_LOG(LogTemp, Error, TEXT("Failed to get traverse shaders in ClockComponent!"));
+		return false;
 	}
+
+	ci->SetVectorParameterValue(FName("Start Position"), spawn_location_);
+	ci->SetScalarParameterValue(FName("Distance"), 250.0f); // This should be over time, and the length of the sphere
+
+	return true;
+}
+
+bool UClockComponent::StopShader(FTraverseShader shader)
+{
+	auto* ci = shader.collection_instance_;
+	if (!ci)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to get traverse shaders in ClockComponent!"));
+		return false;
+	}
+
+	ci->SetScalarParameterValue(FName("Distance"), 0.0f); // This should be over time, and the length of the sphere
+
+	return true;
 }
 
 TSet<AActor*> UClockComponent::GetOverlappingActors() const
@@ -174,15 +200,11 @@ TSet<AActor*> UClockComponent::GetOverlappingActors() const
 	//TSet<AActor*> actors_to_remove;
 	//for (auto* actor : overlapping_actors)
 	//{
-	//	// Skip robots
-	//	if (actor->ActorHasTag("Robot"))
-	//		continue;
-
-	//	if (!actor->bHidden)
-	//		actors_to_remove.Add(actor);
+		//if (!actor->bHidden)
+			//actors_to_remove.Add(actor);
 	//}
 
-	// Remove those actors from the actor set
+	 //Remove those actors from the actor set
 	//for (auto* actor : actors_to_remove)
 		//overlapping_actors.Remove(actor);
 

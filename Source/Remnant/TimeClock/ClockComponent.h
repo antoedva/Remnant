@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "../Traverser/TraverseComponent.h"
+
 #include "ClockComponent.generated.h"
 
 class UStaticMeshComponent;
@@ -33,11 +35,13 @@ private:
 
 	AFP_Character* player_;
 	AActor* clock_;
+	FVector spawn_location_;
 
 	bool GetSpawnLocation(OUT FVector& location) const;
 	bool LineTrace(OUT FHitResult& result) const;
-	void RenderObjectsInClock();
-	void StopRenderingObjectsInClock();
+	void ToggleObjectsInClock();
+	bool StartShader(FTraverseShader shader);
+	bool StopShader(FTraverseShader shader);
 
 	TSet<AActor*> current_actors_in_clock_;
 	TSet<AActor*> GetOverlappingActors() const;
