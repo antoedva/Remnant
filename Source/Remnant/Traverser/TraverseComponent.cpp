@@ -107,7 +107,10 @@ void UTraverseComponent::TraverseDimension()
 void UTraverseComponent::SpawnSphere()
 {
 	if (!sphere_bp_)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to find sphere_bp_! Check CH_Player->TraverseComponent"));
 		return;
+	}
 	if (sphere_)
 		GetWorld()->DestroyActor(sphere_);
 
@@ -119,11 +122,6 @@ void UTraverseComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (!use_old_traverse_)
-	{
-		InitializeShaders();
-		SetupTimeline();
-	}
 
 	if (!lsm_bp_)
 	{
@@ -223,6 +221,12 @@ void UTraverseComponent::BeginPlay()
 			}
 		}
 	}
+
+	if (!use_old_traverse_)
+	{
+		InitializeShaders();
+		SetupTimeline();
+	}
 }
 
 void UTraverseComponent::TickComponent(float delta_time, ELevelTick tick_type, FActorComponentTickFunction* this_tick_function)
@@ -232,25 +236,21 @@ void UTraverseComponent::TickComponent(float delta_time, ELevelTick tick_type, F
 	if (use_old_traverse_)
 		return;
 
+	timeline_.TickTimeline(delta_time);
 
 	if (sphere_)
 	{
 		if (!UpdateLevelObjects())
 			return;
 
-		// 2.81195079086115929701230228471 is magical yes, but it's a carefully calculated value that makes the sphere fit inside the level bounds
-		// TODO: 
-		// Move level_scale and max_scale outside of tick
-		const FVector level_scale = lsm_->GetLevel(LevelID::PAST)->GetVolume()->GetActorScale();
-		const FVector max_scale = level_scale * 2.81195079086115929701230228471f;
+		// magic_number_ is magical yes, but it's a carefully calculated value that makes the sphere fit inside the level bounds
+		const float max_scale = level_length_ / magic_number_;
 		// Set sphere scale based on timeline position and length
-		const float tl_length = timeline_.GetTimelineLength();
-		const float slope = max_scale.X / tl_length;
+		const float slope = max_scale / timeline_length_;
 		const float val = slope * timeline_position_;
 
 		sphere_->SetActorScale3D(FVector(val));
 	}
-	timeline_.TickTimeline(delta_time);
 }
 
 void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
@@ -428,8 +428,18 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 
 void UTraverseComponent::SetupTimeline()
 {
-	if (!curve_)
-		return;
+	//if (!curve_)
+		//return;
+	
+	// Set default value here because UPROPERTY seems to mess things up :(
+	if (timeline_length_ == 0.0f)
+		timeline_length_ = 5.0f;
+
+	curve_ = NewObject<UCurveFloat>();
+	timeline_.SetTimelineLengthMode(TL_TimelineLength);
+	timeline_.SetTimelineLength(timeline_length_);
+	curve_->FloatCurve.AddKey(0.0f, 0.0f);
+	curve_->FloatCurve.AddKey(timeline_.GetTimelineLength(), level_length_ * 0.5f);
 
 	FOnTimelineFloat tl_cb;
 	FOnTimelineEventStatic tl_end_cb;
