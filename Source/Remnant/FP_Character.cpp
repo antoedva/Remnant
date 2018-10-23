@@ -107,13 +107,12 @@ void AFP_Character::CharacterCrouchToggle()
 
 void AFP_Character::TraverseDimension()
 {
+	// TODO: Add cooldown
 	traverse_component_->TraverseDimension();
 }
 
 void AFP_Character::PlaceClock()
 {
-	return;
-
 	if (!clock_component_->ThrowClock())
 		return;
 
@@ -122,8 +121,6 @@ void AFP_Character::PlaceClock()
 
 void AFP_Character::PickupClock()
 {
-	return;
-
 	if (!clock_component_->PickUpClock())
 		return;
 
