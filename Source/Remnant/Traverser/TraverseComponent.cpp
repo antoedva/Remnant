@@ -405,9 +405,30 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 						if (!primitive_comp)
 							continue;
 
-						// Flip collision preset
-						if (actor->ActorHasTag("Past") || actor->ActorHasTag("Present"))
-							primitive_comp->SetCollisionResponseToAllChannels(primitive_comp->GetCollisionResponseToChannel(ECC_MAX) == ECR_Overlap ? ECR_Block : ECR_Overlap);
+						// For some reason, I can't just do a simple block ? overlap : block, because the getter for the collisionresponse is stupid, oh well
+						switch (dimension_)
+						{
+						case PAST:
+						{
+							if (actor->ActorHasTag("Past"))
+								primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
+							else if (actor->ActorHasTag("Present"))
+								primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
+
+							break;
+						}
+						case PRESENT:
+						{
+							if (actor->ActorHasTag("Present"))
+								primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
+							else if (actor->ActorHasTag("Past"))
+								primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
+							break;
+						}
+						default:
+							break;
+						}
+
 					}
 				}
 				else
@@ -428,9 +449,6 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 
 void UTraverseComponent::SetupTimeline()
 {
-	//if (!curve_)
-		//return;
-	
 	// Set default value here because UPROPERTY seems to mess things up :(
 	if (timeline_length_ == 0.0f)
 		timeline_length_ = 5.0f;

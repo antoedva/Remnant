@@ -88,13 +88,12 @@ private:
 	bool use_old_traverse_ = false;
 
 	FTimeline timeline_;
-	//UPROPERTY(EditDefaultsOnly)
 	UCurveFloat* curve_;
 
 	UPROPERTY(EditDefaultsOnly)
 	float timeline_length_;
 	
-	// Don't change this!
+	// Magic offset to make the sphere line up with the traverse shader
 	UPROPERTY(EditDefaultsOnly)
 	float magic_number_ = 100.0f;
 	
