@@ -2,14 +2,19 @@
 
 #include "FP_Character.h"
 
+#include "Engine/EngineTypes.h"
 #include "Engine/World.h"
+
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
+
 #include "GameFramework/InputSettings.h"
 #include "GameFramework/CharacterMovementComponent.h"
+
 #include "PuzzleSystem/Components/InteractComponent.h"
 #include "PuzzleSystem/Components/InventoryComponent.h"
+#include "Public/TimerManager.h"
 
 #include "Traverser/TraverseComponent.h"
 #include "TimeClock/ClockComponent.h"
@@ -116,15 +121,30 @@ void AFP_Character::PlaceClock()
 	if (!clock_component_->ThrowClock())
 		return;
 
+	auto& tm = GetWorld()->GetTimerManager();
+	if (tm.IsTimerActive(clock_timer_handle_))
+		return;
+
+	UE_LOG(LogTemp, Warning, TEXT("Hej"));
+
 	traverse_component_->SetTraverseAllowed(false);
+	tm.SetTimer(clock_timer_handle_, this, &AFP_Character::ClockTimerEndCB, clock_cooldown_, false);
 }
 
 void AFP_Character::PickupClock()
 {
-	if (!clock_component_->PickUpClock())
-		return;
+	auto& tm = GetWorld()->GetTimerManager();
+	if (clock_timer_handle_.IsValid())
+		clock_component_->PickUpClock(true);
+	else
+	{
+		if(!clock_component_->PickUpClock())
+			return;
+	}
 
 	traverse_component_->SetTraverseAllowed(true);
+
+	GetWorld()->GetTimerManager().ClearTimer(clock_timer_handle_);
 }
 
 void AFP_Character::Interact()

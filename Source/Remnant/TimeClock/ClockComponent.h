@@ -20,7 +20,7 @@ public:
 	UClockComponent();
 
 	bool ThrowClock();
-	bool PickUpClock();
+	bool PickUpClock(const bool ignore_linetrace = false);
 
 protected:
 	void BeginPlay() override;

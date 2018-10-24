@@ -38,7 +38,6 @@ bool UClockComponent::ThrowClock()
 	clock_ = GetWorld()->SpawnActor<AActor>(clock_bp_, spawn_location_, FRotator(0.0f));
 
 	// Save our overlapped actors so we know what to remove later on
-	//current_actors_in_clock_ = GetOverlappingActors();
 	GetOverlappingActors(current_actors_in_clock_, base_item_);
 	GetOverlappingActors(actors_to_freeze_);
 
@@ -59,17 +58,20 @@ bool UClockComponent::ThrowClock()
 	return true;
 }
 
-bool UClockComponent::PickUpClock()
+bool UClockComponent::PickUpClock(const bool ignore_linetrace)
 {
 	if (!clock_)
 		return false;
 
-	FHitResult result;
-	if (!LineTrace(result))
-		return false;
+	if (!ignore_linetrace)
+	{
+		FHitResult result;
+		if (!LineTrace(result))
+			return false;
 
-	if (result.Actor != clock_)
-		return false;
+		if (result.Actor != clock_)
+			return false;
+	}
 
 	ToggleObjectsInClock();
 	ToggleFrozenActors();
@@ -223,7 +225,7 @@ bool UClockComponent::GetOverlappingActors(TSet<AActor*>& out_actors, TSubclassO
 	//clock_components.Empty();
 
 	//return overlapping_actors;
-	
+
 	return false;
 }
 
@@ -231,17 +233,17 @@ void UClockComponent::ToggleFrozenActors()
 {
 	for (auto* actor : actors_to_freeze_)
 	{
-		if(!actor)
+		if (!actor)
 			continue;
 
-		auto* trigger_actor = Cast<ATriggerReceiverActor>(actor); 
+		auto* trigger_actor = Cast<ATriggerReceiverActor>(actor);
 
-		if(!trigger_actor)
+		if (!trigger_actor)
 			continue;
 
 		// Trigger channel 10 or 11 based on whether whether we want to freeze or unfreeze it
 		trigger_actor->TriggerThisReceiver(static_cast<int>(
-			trigger_actor->GetIsFrozen() ? 	ETriggerBroadcastChannel::CHANNEL_ELEVEN : ETriggerBroadcastChannel::CHANNEL_TEN));
+			trigger_actor->GetIsFrozen() ? ETriggerBroadcastChannel::CHANNEL_ELEVEN : ETriggerBroadcastChannel::CHANNEL_TEN));
 		trigger_actor->SetFrozen(!trigger_actor->GetIsFrozen());
 	}
 }
