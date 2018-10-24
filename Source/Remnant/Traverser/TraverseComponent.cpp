@@ -28,17 +28,13 @@
 #define print(format, ...) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT(format), ##__VA_ARGS__), false)
 
 UTraverseComponent::UTraverseComponent(const FObjectInitializer& init)
-	: traverse_allowed_(true)
-	, dimension_(PRESENT)
+	: dimension_(PRESENT)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
 void UTraverseComponent::TraverseDimension()
 {
-	if (!traverse_allowed_)
-		return;
-
 	if (!lsm_)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Level manager not set in CH_Player->traverse_component_->LevelManager!"));
@@ -89,6 +85,22 @@ void UTraverseComponent::TraverseDimension()
 			ULevelStreaming* stream = level.Value->GetLevelStream();
 			if (!stream)
 				continue;
+			// Remove when the clock shader is implemented
+			if (level.Key == LevelID::OBJECT)
+			{
+				// Change visibility on items depending on which dimension is current 
+				for (AActor* actor : stream->GetLoadedLevel()->Actors)
+				{
+					if (!actor)
+						continue;
+
+					if (!actor->HasValidRootComponent())
+						continue;
+
+					ToggleObjectVisibility(actor);
+				}
+			}
+			// !
 
 			level_actor_arrays_.Add(level.Key, stream->GetLoadedLevel()->Actors);
 		}
@@ -164,19 +176,19 @@ void UTraverseComponent::BeginPlay()
 				level_bounds_ = level.Value->GetLeveLBounds();
 				level_length_ = level_bounds_.GetExtent().Distance(level_bounds_.Min, level_bounds_.Max);
 
-				if(level_length_ == 0.0f)
+				if (level_length_ == 0.0f)
 					UE_LOG(LogTemp, Warning, TEXT("Level length is 0! Make sure you have a level streaming volume that covers the map!"))
 
-				for (auto* actor : actors)
-				{
-					auto* light = Cast<ALight>(actor);
-					if (light)
+					for (auto* actor : actors)
 					{
-						light->ToggleEnabled();
-						continue;
+						auto* light = Cast<ALight>(actor);
+						if (light)
+						{
+							light->ToggleEnabled();
+							continue;
+						}
+						actor->SetActorEnableCollision(false);
 					}
-					actor->SetActorEnableCollision(false);
-				}
 			}
 		}
 

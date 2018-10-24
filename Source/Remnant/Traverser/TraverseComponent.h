@@ -39,8 +39,6 @@ public:
 	UTraverseComponent(const FObjectInitializer& init);
 
 	void TraverseDimension();
-	void SetTraverseAllowed(const bool state) { traverse_allowed_ = state; }
-	bool GetTraverseAllowed() const { return traverse_allowed_; }
 	
 	UPROPERTY(EditAnywhere)
 	FTraverseShader past_traverse_shader_;
@@ -64,8 +62,6 @@ private:
 		PRESENT
 	} dimension_;
 
-	bool traverse_allowed_;
-	
 	UPROPERTY(EditDefaultsOnly, Category = "LevelManager")
 	TSubclassOf<AActor> lsm_bp_;
 

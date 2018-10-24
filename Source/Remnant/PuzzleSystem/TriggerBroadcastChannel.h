@@ -15,5 +15,7 @@ enum class ETriggerBroadcastChannel : uint8
 	CHANNEL_SEVEN UMETA(DisplayName = "Channel Seven"),
 	CHANNEL_EIGHT UMETA(DisplayName = "Channel Eight"),
 	CHANNEL_NINE UMETA(DisplayName = "Channel Nine"),
+	CHANNEL_TEN UMETA(DisplayName = "Channel Ten (Freeze)"),
+	CHANNEL_ELEVEN UMETA(DisplayName = "Channel Eleven (Unfreeze)"),
 	ALL UMETA(DisplayName = "All Channels")
 };
