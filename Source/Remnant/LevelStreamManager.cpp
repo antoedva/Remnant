@@ -56,7 +56,7 @@ bool ALevelStreamManager::LoadAllLevels()
 			volume = Cast<ALevelStreamingVolume>(actor);
 			if (!volume)
 				continue;
-			
+
 			volume->GetActorBounds(false, origin, extent);
 			box = ALevelBounds::CalculateLevelBounds(level_stream->GetLoadedLevel()).BuildAABB(origin, extent);
 			break;
@@ -68,9 +68,9 @@ bool ALevelStreamManager::LoadAllLevels()
 		LevelID id = LevelID::OBJECT;
 		if (level_name.Compare("ObjectLevel") == 0)
 			id = LevelID::OBJECT;
-		else if (level_name.Compare("Past") == 0)
+		else if (level_name.Compare("Present") == 0 || level_name.Compare("Level_01_Past") == 0 || level_name.Compare("Level_02_Past") == 0 || level_name.Compare("Level_03_Past") == 0 || level_name.Compare("Level_04_Past") == 0)
 			id = LevelID::PAST;
-		else if (level_name.Compare("Present") == 0)
+		else if (level_name.Compare("Present") == 0 || level_name.Compare("Level_01_Present") == 0 || level_name.Compare("Level_02_Present") == 0 || level_name.Compare("Level_03_Present") == 0 || level_name.Compare("Level_04_Present") == 0)
 			id = LevelID::PRESENT;
 
 		level_streams_.Add(id, new FLevel(level_stream, box, id, volume));
@@ -82,7 +82,7 @@ bool ALevelStreamManager::LoadAllLevels()
 void ALevelStreamManager::UnloadAllLevels()
 {
 	UWorld* world = AActor::GetWorld();
-	
+
 	for (auto& level_map : level_streams_)
 	{
 		ULevelStreaming* stream = level_map.Value->GetLevelStream();
