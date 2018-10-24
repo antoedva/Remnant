@@ -112,8 +112,14 @@ void AFP_Character::CharacterCrouchToggle()
 
 void AFP_Character::TraverseDimension()
 {
-	// TODO: Add cooldown
+	if (!traverse_allowed_)
+		return;
+
 	traverse_component_->TraverseDimension();
+
+	auto& tm = GetWorld()->GetTimerManager();
+	tm.SetTimer(traverse_timer_handle_, this, &AFP_Character::TraverseTimerEndCB, traverse_cooldown_, false);
+	traverse_allowed_ = false;
 }
 
 void AFP_Character::PlaceClock()
@@ -125,8 +131,8 @@ void AFP_Character::PlaceClock()
 	if (tm.IsTimerActive(clock_timer_handle_))
 		return;
 
-	traverse_component_->SetTraverseAllowed(false);
 	tm.SetTimer(clock_timer_handle_, this, &AFP_Character::ClockTimerEndCB, clock_cooldown_, false);
+	traverse_allowed_ = false;
 }
 
 void AFP_Character::PickupClock()
@@ -140,9 +146,8 @@ void AFP_Character::PickupClock()
 			return;
 	}
 
-	traverse_component_->SetTraverseAllowed(true);
-
 	GetWorld()->GetTimerManager().ClearTimer(clock_timer_handle_);
+	traverse_allowed_ = true;
 }
 
 void AFP_Character::Interact()

@@ -61,4 +61,10 @@ private:
 	UFUNCTION()
 	void ClockTimerEndCB() { PickupClock(); }
 	
+	bool traverse_allowed_ = true;
+	UPROPERTY(EditInstanceOnly, Category = "Traverse")
+	float traverse_cooldown_ = 3.0f;
+	FTimerHandle traverse_timer_handle_;
+	UFUNCTION()
+	void TraverseTimerEndCB() { traverse_allowed_ = true; }
 };
