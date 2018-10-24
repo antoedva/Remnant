@@ -173,7 +173,7 @@ void UTraverseComponent::BeginPlay()
 				stream->SetShouldBeVisible(false);
 			else
 			{
-				level_bounds_ = level.Value->GetLeveLBounds();
+				level_bounds_ = level.Value->GetLevelBounds();
 				level_length_ = level_bounds_.GetExtent().Distance(level_bounds_.Min, level_bounds_.Max);
 
 				if (level_length_ == 0.0f)
