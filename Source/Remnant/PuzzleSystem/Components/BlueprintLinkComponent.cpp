@@ -31,6 +31,12 @@ void UBlueprintLinkComponent::BroadcastToBlueprintReverse(int channel)
 		return;
 	}
 
-	for (unsigned i = 0; i < (int)ETriggerBroadcastChannel::ALL; ++i)
+	for (unsigned i = 0; i < static_cast<int>(ETriggerBroadcastChannel::ALL); ++i)
+	{
+		// Skip freeze channels
+		if(i == static_cast<int>(ETriggerBroadcastChannel::CHANNEL_ELEVEN) || i == static_cast<int>(ETriggerBroadcastChannel::CHANNEL_TEN))
+			continue;
+
 		onTriggerReverse.Broadcast(i);
+	}
 }
