@@ -149,6 +149,9 @@ void UClockComponent::ToggleObjectsInClock()
 		TArray<UActorComponent*, TInlineAllocator<2>> components;
 		actor->GetComponents(components);
 
+		// Remove when shader is implemented
+		actor->SetActorHiddenInGame(!actor->bHidden);
+
 		for (auto* component : components)
 		{
 			auto* primitive_component = Cast<UPrimitiveComponent>(component);
@@ -184,7 +187,7 @@ bool UClockComponent::StopShader(FTraverseShader shader)
 		return false;
 	}
 
-	ci->SetScalarParameterValue(FName("Distance"), 0.0f); // This should be over time, and the length of the sphere
+	ci->SetScalarParameterValue(FName("Distance"), 0.0f); // This should be over time
 
 	return true;
 }

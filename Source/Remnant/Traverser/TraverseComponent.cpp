@@ -89,6 +89,22 @@ void UTraverseComponent::TraverseDimension()
 			ULevelStreaming* stream = level.Value->GetLevelStream();
 			if (!stream)
 				continue;
+			// Remove when the clock shader is implemented
+			if (level.Key == LevelID::OBJECT)
+			{
+				// Change visibility on items depending on which dimension is current 
+				for (AActor* actor : stream->GetLoadedLevel()->Actors)
+				{
+					if (!actor)
+						continue;
+
+					if (!actor->HasValidRootComponent())
+						continue;
+
+					ToggleObjectVisibility(actor);
+				}
+			}
+			// !
 
 			level_actor_arrays_.Add(level.Key, stream->GetLoadedLevel()->Actors);
 		}

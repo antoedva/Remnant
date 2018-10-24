@@ -125,8 +125,6 @@ void AFP_Character::PlaceClock()
 	if (tm.IsTimerActive(clock_timer_handle_))
 		return;
 
-	UE_LOG(LogTemp, Warning, TEXT("Hej"));
-
 	traverse_component_->SetTraverseAllowed(false);
 	tm.SetTimer(clock_timer_handle_, this, &AFP_Character::ClockTimerEndCB, clock_cooldown_, false);
 }
