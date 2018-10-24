@@ -72,7 +72,7 @@ void UInteractComponent::TickingRaycast()
 			{
 				if (ui->crosshairImage)
 				{
-					ui->crosshairImage->SetOpacity(0.2f);
+					ui->crosshairImage->SetOpacity(0.4f);
 				}
 
 				if (ui->pickupText)
