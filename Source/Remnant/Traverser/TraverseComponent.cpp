@@ -176,7 +176,7 @@ void UTraverseComponent::BeginPlay()
 			}
 		}
 
-		else if (level.Key == LevelID::OBJECT)
+		else if (level.Key == LevelID::OBJECT || level.Key == LevelID::OBJECT1 || level.Key == LevelID::OBJECT2)
 		{
 			for (AActor* actor : actors)
 			{
@@ -393,7 +393,7 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 				else if (actor->GetName().Compare("BP_Sky_Sphere_Past") == 0 || actor->GetName().Compare("BP_Sky_Sphere_Present") == 0)
 					actor->SetActorHiddenInGame(!actor->bHidden);
 
-				else if (a.Key == LevelID::OBJECT)
+				else if (a.Key == LevelID::OBJECT || a.Key == LevelID::OBJECT1 || a.Key == LevelID::OBJECT2)
 				{
 					TArray<UActorComponent*, TInlineAllocator<2>> components;
 					actor->GetComponents(components);
