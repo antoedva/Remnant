@@ -377,6 +377,7 @@ bool UTraverseComponent::UpdateLevelObjects()
 
 bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 {
+	// Used to keep track on which array is empty
 	bool is_empty[3] = { false, false, false };
 
 	for (auto& a : level_actor_arrays_)
@@ -489,6 +490,12 @@ void UTraverseComponent::SetupTimeline()
 
 void UTraverseComponent::TimelineCB()
 {
+	if (!curve_)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Traverse float curve not set!"));
+		return;
+	}
+
 	timeline_position_ = timeline_.GetPlaybackPosition();
 	curve_value_ = curve_->GetFloatValue(timeline_position_);
 
