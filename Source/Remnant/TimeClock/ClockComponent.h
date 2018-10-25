@@ -42,6 +42,7 @@ private:
 	void ToggleObjectsInClock();
 	bool StartShader(FTraverseShader shader);
 	bool StopShader(FTraverseShader shader);
+	float last_distance_;
 
 	TSet<AActor*> current_actors_in_clock_;
 	bool GetOverlappingActors(TSet<AActor*>& out_actors, TSubclassOf<AActor> filter = nullptr) const;

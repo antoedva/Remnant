@@ -51,16 +51,22 @@ public:
 
 	void SpawnSphere();
 
-protected:
-	void BeginPlay() override;
-	void TickComponent(float delta_time, enum ELevelTick tick_type, FActorComponentTickFunction* this_tick_function) override;
-	
-private:
 	enum Dimension
 	{
 		PAST,
 		PRESENT
-	} dimension_;
+	};
+
+	bool GetFirstSkipped() const { return first_skipped_; }
+
+
+protected:
+	void BeginPlay() override;
+	void TickComponent(float delta_time, enum ELevelTick tick_type, FActorComponentTickFunction* this_tick_function) override;
+	
+
+private:
+	Dimension dimension_;
 
 	UPROPERTY(EditDefaultsOnly, Category = "LevelManager")
 	TSubclassOf<AActor> lsm_bp_;
@@ -104,6 +110,10 @@ private:
 	void TimelineCB();
 	UFUNCTION()
 	void TimelineEndCB();
+
+public:
+	Dimension GetCurrentDimension() const { return dimension_; }
+
 };
 
 
