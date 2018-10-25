@@ -12,7 +12,9 @@ enum class LevelID
 {
 	OBJECT = 0,
 	PAST,
-	PRESENT
+	PRESENT,
+	OBJECT1,
+	OBJECT2
 };
 
 struct FLevel
