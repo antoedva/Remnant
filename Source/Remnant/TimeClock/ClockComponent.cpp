@@ -107,21 +107,6 @@ bool UClockComponent::PickUpClock(const bool ignore_linetrace)
 
 	timeline_.Reverse();
 	has_reversed_ = true;
-	//switch (traverse_component_->GetCurrentDimension())
-	//{
-	//case UTraverseComponent::PAST:
-	//{
-	//	StopShader(traverse_component_->present_traverse_shader_);
-	//	break;
-	//}
-	//case UTraverseComponent::PRESENT:
-	//{
-	//	StopShader(traverse_component_->past_traverse_shader_);
-	//	break;
-	//}
-	//default:
-	//	break;
-	//};
 
 	return true;
 }
@@ -357,8 +342,6 @@ void UClockComponent::TimelineCB()
 {
 	const float timeline_position = timeline_.GetPlaybackPosition();
 	const float curve_value = curve_->GetFloatValue(timeline_position);
-	
-	UE_LOG(LogTemp, Warning, TEXT("%f"), curve_value);
 
 	switch (traverse_component_->GetCurrentDimension())
 	{

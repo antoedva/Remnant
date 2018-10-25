@@ -448,15 +448,6 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 
 void UTraverseComponent::SetupTimeline()
 {
-	// Set default value here because UPROPERTY seems to mess things up :(
-	//if (timeline_length_ == 0.0f)
-		//timeline_length_ = 5.0f;
-	//curve_ = NewObject<UCurveFloat>();
-	//timeline_.SetTimelineLengthMode(TL_TimelineLength);
-	//timeline_.SetTimelineLength(timeline_length_);
-	//curve_->FloatCurve.AddKey(0.0f, 0.0f);
-	//curve_->FloatCurve.AddKey(timeline_.GetTimelineLength(), level_length_ * 0.5f);
-
 	if (!curve_)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Traverse float curve not set!"));
