@@ -85,28 +85,12 @@ void UTraverseComponent::TraverseDimension()
 			ULevelStreaming* stream = level.Value->GetLevelStream();
 			if (!stream)
 				continue;
-			// Remove when the clock shader is implemented
-			//if (level.Key == LevelID::OBJECT)
-			//{
-			//	// Change visibility on items depending on which dimension is current 
-			//	for (AActor* actor : stream->GetLoadedLevel()->Actors)
-			//	{
-			//		if (!actor)
-			//			continue;
-
-			//		if (!actor->HasValidRootComponent())
-			//			continue;
-
-			//		ToggleObjectVisibility(actor);
-			//	}
-			//}
-			// !
 
 			level_actor_arrays_.Add(level.Key, stream->GetLoadedLevel()->Actors);
 		}
 
 		timeline_.PlayFromStart();
-		//SpawnSphere();
+		SpawnSphere();
 		TraverseShaderStart(past_traverse_shader_);
 		TraverseShaderStart(present_traverse_shader_);
 		first_skipped_ = true;
@@ -250,19 +234,19 @@ void UTraverseComponent::TickComponent(float delta_time, ELevelTick tick_type, F
 
 	timeline_.TickTimeline(delta_time);
 
-	//if (sphere_)
-	//{
-	//	if (!UpdateLevelObjects())
-	//		return;
+	if (sphere_)
+	{
+		if (!UpdateLevelObjects())
+			return;
 
-	//	// magic_number_ is magical yes, but it's a carefully calculated value that makes the sphere fit inside the level bounds
-	//	const float max_scale = level_length_ / magic_number_;
-	//	// Set sphere scale based on timeline position and length
-	//	const float slope = max_scale / timeline_length_;
-	//	const float val = slope * timeline_position_;
+		// magic_number_ is magical yes, but it's a carefully calculated value that makes the sphere fit inside the level bounds
+		const float max_scale = level_length_ / magic_number_;
+		// Set sphere scale based on timeline position and length
+		const float slope = max_scale / timeline_length_;
+		const float val = slope * timeline_position_;
 
-	//	sphere_->SetActorScale3D(FVector(val));
-	//}
+		sphere_->SetActorScale3D(FVector(val));
+	}
 }
 
 void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
@@ -332,6 +316,8 @@ void UTraverseComponent::InitializeShaders()
 	// Change default alpha values of past shaders here so we can see whats going on when not playing the game
 	past_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Alpha 1"), 1.0f);
 	past_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Alpha 2"), 0.0f);
+
+	past_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("ToggleOpacity"), 0.0f);
 }
 
 void UTraverseComponent::TraverseShaderStart(FTraverseShader shader)
@@ -485,7 +471,7 @@ void UTraverseComponent::SetupTimeline()
 	timeline_.AddInterpFloat(curve_, tl_cb);
 	timeline_.SetTimelineFinishedFunc(tl_end_cb);
 
-	timeline_length_ = curve_->GetFloatValue(timeline_.GetTimelineLength());
+	timeline_length_ = timeline_.GetTimelineLength();
 }
 
 void UTraverseComponent::TimelineCB()
@@ -505,7 +491,7 @@ void UTraverseComponent::TimelineCB()
 	if (!present_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), curve_value_))
 		UE_LOG(LogTemp, Warning, TEXT("Failed to find distance paramater"));
 
-	UpdateLevelObjects();
+	//UpdateLevelObjects();
 }
 
 void UTraverseComponent::TimelineEndCB()
@@ -517,10 +503,10 @@ void UTraverseComponent::TimelineEndCB()
 		UE_LOG(LogTemp, Warning, TEXT("Failed to find distance paramater"));
 
 	ChangeActorCollision(true);
-	//if (sphere_)
-	//{
-	//	GetWorld()->DestroyActor(sphere_);
-	//	sphere_ = nullptr;
-	//}
+	if (sphere_)
+	{
+		GetWorld()->DestroyActor(sphere_);
+		sphere_ = nullptr;
+	}
 }
 
