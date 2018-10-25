@@ -151,7 +151,7 @@ void UTraverseComponent::BeginPlay()
 
 		const TArray<AActor*> actors = stream->GetLoadedLevel()->Actors;
 
-		if (level.Key == LevelID::PAST)
+		if (level.Key == LevelID::PAST || level.Key == LevelID::PAST1 || level.Key == LevelID::PAST2 || level.Key == LevelID::PAST3)
 		{
 			if (use_old_traverse_)
 				stream->SetShouldBeVisible(false);
@@ -176,7 +176,7 @@ void UTraverseComponent::BeginPlay()
 			}
 		}
 
-		else if (level.Key == LevelID::OBJECT)
+		else if (level.Key == LevelID::OBJECT || level.Key == LevelID::OBJECT1 || level.Key == LevelID::OBJECT2)
 		{
 			for (AActor* actor : actors)
 			{
@@ -393,7 +393,7 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 				else if (actor->GetName().Compare("BP_Sky_Sphere_Past") == 0 || actor->GetName().Compare("BP_Sky_Sphere_Present") == 0)
 					actor->SetActorHiddenInGame(!actor->bHidden);
 
-				else if (a.Key == LevelID::OBJECT)
+				else if (a.Key == LevelID::OBJECT || a.Key == LevelID::OBJECT1 || a.Key == LevelID::OBJECT2)
 				{
 					TArray<UActorComponent*, TInlineAllocator<2>> components;
 					actor->GetComponents(components);
@@ -448,15 +448,6 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 
 void UTraverseComponent::SetupTimeline()
 {
-	// Set default value here because UPROPERTY seems to mess things up :(
-	//if (timeline_length_ == 0.0f)
-		//timeline_length_ = 5.0f;
-	//curve_ = NewObject<UCurveFloat>();
-	//timeline_.SetTimelineLengthMode(TL_TimelineLength);
-	//timeline_.SetTimelineLength(timeline_length_);
-	//curve_->FloatCurve.AddKey(0.0f, 0.0f);
-	//curve_->FloatCurve.AddKey(timeline_.GetTimelineLength(), level_length_ * 0.5f);
-
 	if (!curve_)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Traverse float curve not set!"));

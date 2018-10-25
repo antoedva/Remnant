@@ -68,11 +68,27 @@ bool ALevelStreamManager::LoadAllLevels()
 		LevelID id = LevelID::OBJECT;
 		if (level_name.Compare("ObjectLevel") == 0)
 			id = LevelID::OBJECT;
-		else if (level_name.Compare("Present") == 0 || level_name.Compare("Level_01_Past") == 0 || level_name.Compare("Level_02_Past") == 0 || level_name.Compare("Level_03_Past") == 0 || level_name.Compare("Level_04_Past") == 0)
+		else if (level_name.Compare("ObjectLevel_Room02") == 0)
+			id = LevelID::OBJECT2;
+		else if (level_name.Compare("Level_04_Puzzle_B") == 0)
+			id = LevelID::OBJECT1;
+		else if (level_name.Compare("Level_01_Past") == 0)
 			id = LevelID::PAST;
-		else if (level_name.Compare("Present") == 0 || level_name.Compare("Level_01_Present") == 0 || level_name.Compare("Level_02_Present") == 0 || level_name.Compare("Level_03_Present") == 0 || level_name.Compare("Level_04_Present") == 0)
+		else if (level_name.Compare("Level_02_Past") == 0)
+			id = LevelID::PAST1;
+		else if (level_name.Compare("Level_03_Past") == 0)
+			id = LevelID::PAST2;
+		else if (level_name.Compare("Level_04_Past") == 0)
+			id = LevelID::PAST3;
+		else if (level_name.Compare("Level_01_Present") == 0)
 			id = LevelID::PRESENT;
-
+		else if (level_name.Compare("Level_02_Present") == 0)
+			id = LevelID::PRESENT1;
+		else if (level_name.Compare("Level_03_Present") == 0)
+			id = LevelID::PRESENT2;
+		else if (level_name.Compare("Level_04_Present") == 0)
+			id = LevelID::PRESENT3;
+	
 		level_streams_.Add(id, new FLevel(level_stream, box, id, volume));
 	}
 
