@@ -6,6 +6,7 @@
 #include "DrawDebugHelpers.h"
 #include "Components/PrimitiveComponent.h"
 
+#define OUT
 
 // Sets default values for this component's properties
 UGrabber::UGrabber()
@@ -23,7 +24,8 @@ void UGrabber::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
+	FindPhysicsHandleComponent();
+	FindInputComponent();
 	
 }
 
@@ -31,7 +33,7 @@ FVector UGrabber::GetLineTraceEnd()
 {
 	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(OUT PlayerViewPointLocation, OUT PlayerViewPointRotation);
 
-	return PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
+	return PlayerViewPointLocation + (PlayerViewPointRotation.Vector() * Reach);
 }
 
 
@@ -40,27 +42,45 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	if (!PhysicsHandle) { return; }
+	//if physics handle is attached
+	if (PhysicsHandle->GrabbedComponent)
+	{
+		//move object that we're holding
+		PhysicsHandle->SetTargetLocation(GetLineTraceEnd());
+	}
+
+	//DrawDebugLine(
+	//	GetWorld(),
+	//	GetOwner()->GetActorLocation(),
+	//	GetLineTraceEnd(),
+	//	FColor(255, 0, 0),
+	//	false, -1, 0, 15.f);
 }
 
 void UGrabber::Grab()
 {
 	GetFirstPhysicsBodyInReach();
 
+
 	//try reach any actors with physics body collision channel set
 	auto HitResult = GetFirstPhysicsBodyInReach();
-	auto ComponentToGrab = HitResult.GetComponent();
+
 	auto ActorHit = HitResult.GetActor();
+	auto ComponentToGrab = ActorHit->GetRootComponent();
 	//TODO if we hit something, attach a physics handle
 	if (ActorHit)
 	{
+		UE_LOG(LogTemp, Error, TEXT("Grab attempted"));
 		if (!PhysicsHandle) { return; }
-		PhysicsHandle->GrabComponentAtLocation(ComponentToGrab, NAME_None, ComponentToGrab->GetOwner()->GetActorLocation());
+		//PhysicsHandle->GrabComponentAtLocation(ComponentToGrab, NAME_None, ComponentToGrab->GetOwner()->GetActorLocation());
 	}
 }
 
 void UGrabber::Release()
 {
+	if (!PhysicsHandle) { return; }
+	PhysicsHandle->ReleaseComponent();
 }
 
 void UGrabber::FindPhysicsHandleComponent()
@@ -77,8 +97,8 @@ void UGrabber::FindInputComponent()
 	InputComponent = GetOwner()->FindComponentByClass<UInputComponent>();
 	if (InputComponent)
 	{
-		InputComponent->BindAction("Grab", IE_Pressed, this, &UGrabber::Grab);
-		InputComponent->BindAction("Grab", IE_Released, this, &UGrabber::Release);
+		InputComponent->BindAction("Interact", IE_Pressed, this, &UGrabber::Grab);
+		InputComponent->BindAction("Interact", IE_Released, this, &UGrabber::Release);
 	}
 	else
 	{
@@ -93,6 +113,8 @@ const FHitResult UGrabber::GetFirstPhysicsBodyInReach()
 	///ray-cast out to reach distance, store reach
 	FHitResult LineTraceHit;
 	GetWorld()->LineTraceSingleByObjectType(OUT LineTraceHit, PlayerViewPointLocation, GetLineTraceEnd(), FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody), TraceParameters);
+
+
 
 	///see what we hit
 	AActor* ActorHit = LineTraceHit.GetActor();

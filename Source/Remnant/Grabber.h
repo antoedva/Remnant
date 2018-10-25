@@ -22,14 +22,15 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	FVector GetLineTraceEnd();
-
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	UPhysicsHandleComponent* PhysicsHandle;
-	UInputComponent* InputComponent;
+	FVector GetLineTraceEnd();
+
+private:
+	UPhysicsHandleComponent* PhysicsHandle = nullptr;
+	UInputComponent* InputComponent = nullptr;
 	const FHitResult GetFirstPhysicsBodyInReach();
 
 	void Grab();
@@ -38,7 +39,8 @@ public:
 	void FindPhysicsHandleComponent();
 	void FindInputComponent();
 	
-	float Reach = 100.f;
+	UPROPERTY(editanywhere)
+		float Reach = 200.f;
 
 	FVector PlayerViewPointLocation;
 	FRotator PlayerViewPointRotation;

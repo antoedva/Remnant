@@ -19,5 +19,6 @@ class REMNANT_API APhysicsPickUpActor : public AInteractableActorBase
 
 		void InteractWith(UInventoryComponent* optionalInventory) override;
 	
-	
+private:
+
 };
