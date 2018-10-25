@@ -43,6 +43,26 @@ bool UClockComponent::ThrowClock()
 		return false;
 
 	clock_ = GetWorld()->SpawnActor<AActor>(clock_bp_, spawn_location_, FRotator(0.0f));
+	
+	if (!(clock_length_ > 0.0f))
+	{
+		FVector min;
+		FVector max;
+		for (auto* component : clock_->GetComponents())
+		{
+			if (!component)
+				continue;
+
+			if (component->ComponentHasTag("Mesh"))
+			{
+				auto* mesh = Cast<UStaticMeshComponent>(component);
+				mesh->GetLocalBounds(min, max);
+				break;
+			}
+		}
+		clock_length_ = min.Distance(min, max);
+		UE_LOG(LogTemp, Warning, TEXT("%f"), clock_length_);
+	}
 
 	// Save our overlapped actors so we know what to remove later on
 	GetOverlappingActors(current_actors_in_clock_, base_item_);
@@ -221,7 +241,7 @@ bool UClockComponent::StartShader(FTraverseShader shader)
 	}
 
 	ci->GetScalarParameterValue(FName("Distance"), last_distance_);
-	ci->SetScalarParameterValue(FName("Distance"), 250.0f); // This should be over time, and the length of the sphere
+	ci->SetScalarParameterValue(FName("Distance"), clock_length_ * 0.38f); // This should be over time, and the length of the sphere
 
 	return true;
 }
