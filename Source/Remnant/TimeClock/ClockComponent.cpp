@@ -57,22 +57,22 @@ bool UClockComponent::ThrowClock()
 		return false;
 	}
 
-	switch (traverse_component_->GetCurrentDimension())
-	{
-	case UTraverseComponent::PAST:
-	{
-		StartShader(traverse_component_->present_traverse_shader_);
-		break;
-	}
-	case UTraverseComponent::PRESENT:
-	{
+	//switch (traverse_component_->GetCurrentDimension())
+	//{
+	//case UTraverseComponent::PAST:
+	//{
+	//	StartShader(traverse_component_->present_traverse_shader_);
+	//	break;
+	//}
+	//case UTraverseComponent::PRESENT:
+	//{
 		StartShader(traverse_component_->past_traverse_shader_);
-		break;
-	}
-	default:
-		break;
-	}
-
+//		break;
+//}
+//	default:
+//		break;
+//	}
+//
 	timeline_.PlayFromStart();
 
 	return true;
@@ -343,42 +343,42 @@ void UClockComponent::TimelineCB()
 	const float timeline_position = timeline_.GetPlaybackPosition();
 	const float curve_value = curve_->GetFloatValue(timeline_position);
 
-	switch (traverse_component_->GetCurrentDimension())
-	{
-	case UTraverseComponent::PAST:
-	{
-		traverse_component_->present_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), curve_value);
-		break;
-	}
-	case UTraverseComponent::PRESENT:
-	{
+	//switch (traverse_component_->GetCurrentDimension())
+	//{
+	//case UTraverseComponent::PAST:
+	//{
+	//	traverse_component_->present_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), curve_value);
+	//	break;
+	//}
+	//case UTraverseComponent::PRESENT:
+	//{
 		traverse_component_->past_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), curve_value);
-		break;
-	}
-	default:
-		break;
-	};
+		//break;
+	//}
+	//default:
+		//break;
+	//};
 }
 
 void UClockComponent::TimelineEndCB()
 {
 	if (has_reversed_)
 	{
-		switch (traverse_component_->GetCurrentDimension())
-		{
-		case UTraverseComponent::PAST:
-		{
-			StopShader(traverse_component_->present_traverse_shader_);
-			break;
-		}
-		case UTraverseComponent::PRESENT:
-		{
+	//	switch (traverse_component_->GetCurrentDimension())
+	//	{
+	//	case UTraverseComponent::PAST:
+	//	{
+	//		StopShader(traverse_component_->present_traverse_shader_);
+	//		break;
+	//	}
+	//	case UTraverseComponent::PRESENT:
+	//	{
 			StopShader(traverse_component_->past_traverse_shader_);
-			break;
-		}
-		default:
-			break;
-		};
+//			break;
+//}
+//		default:
+//			break;
+//		};
 		has_reversed_ = false;
 	}
 }
