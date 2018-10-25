@@ -36,6 +36,7 @@ private:
 	AFP_Character* player_;
 	AActor* clock_;
 	FVector spawn_location_;
+	float clock_length_;
 
 	bool GetSpawnLocation(OUT FVector& location) const;
 	bool LineTrace(OUT FHitResult& result) const;
