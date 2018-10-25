@@ -84,6 +84,7 @@ private:
 	bool use_old_traverse_ = false;
 
 	FTimeline timeline_;
+	UPROPERTY(EditDefaultsOnly, Category = "Timeline")
 	UCurveFloat* curve_;
 
 	UPROPERTY(EditDefaultsOnly)
