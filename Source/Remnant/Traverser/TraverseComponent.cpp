@@ -151,7 +151,7 @@ void UTraverseComponent::BeginPlay()
 
 		const TArray<AActor*> actors = stream->GetLoadedLevel()->Actors;
 
-		if (level.Key == LevelID::PAST)
+		if (level.Key == LevelID::PAST || level.Key == LevelID::PAST1 || level.Key == LevelID::PAST2 || level.Key == LevelID::PAST3)
 		{
 			if (use_old_traverse_)
 				stream->SetShouldBeVisible(false);
