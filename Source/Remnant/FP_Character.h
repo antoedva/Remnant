@@ -67,4 +67,14 @@ private:
 	FTimerHandle traverse_timer_handle_;
 	UFUNCTION()
 	void TraverseTimerEndCB() { traverse_allowed_ = true; }
+
+	// Move this later on, just temporary stuff
+protected:
+	void LiftObject();
+	void ReleaseObject();
+private:
+	AActor* actor_to_lift_;
+	FVector trace_start_;
+	FVector trace_end_;
+	float distance_ = 250.0f;
 };

@@ -57,6 +57,13 @@ void AFP_Character::Tick(float deltaTime)
 	Super::Tick(deltaTime);
 
 	interactComponent->TickingRaycast();
+
+	if (actor_to_lift_)
+	{
+		trace_start_ = camera_component_->GetComponentLocation();
+		trace_end_ = trace_start_ + (camera_component_->GetForwardVector() * distance_);
+		actor_to_lift_->SetActorLocation(trace_end_);
+	}
 }
 
 void AFP_Character::SetupPlayerInputComponent(UInputComponent* input_component)
@@ -79,6 +86,8 @@ void AFP_Character::SetupPlayerInputComponent(UInputComponent* input_component)
 	input_component->BindAction("Traverse", IE_Pressed, this, &AFP_Character::TraverseDimension);
 	input_component->BindAction("PlaceClock", IE_Pressed, this, &AFP_Character::PlaceClock);
 	input_component->BindAction("Interact", IE_Pressed, this, &AFP_Character::Interact);
+	input_component->BindAction("LiftObject", IE_Pressed, this, &AFP_Character::LiftObject);
+	input_component->BindAction("ReleaseObject", IE_Released, this, &AFP_Character::ReleaseObject);
 }
 
 void AFP_Character::MoveForward(float value)
@@ -159,4 +168,44 @@ void AFP_Character::Interact()
 	interactComponent->AttemptInteract();
 
 	PickupClock();
+}
+
+void AFP_Character::LiftObject()
+{
+	trace_start_ = camera_component_->GetComponentLocation();
+	trace_end_ = trace_start_ + (camera_component_->GetForwardVector() * distance_);
+
+	const FCollisionQueryParams query_params(TEXT(""), true, this);
+	
+	FHitResult result;
+	GetWorld()->LineTraceSingleByChannel(result, trace_start_, trace_end_, ECC_PhysicsBody, query_params);
+	actor_to_lift_ = result.GetActor();
+	
+	if (!actor_to_lift_)
+		return;
+	
+	for (auto* component : actor_to_lift_->GetComponents())
+	{
+		auto* prim = Cast<UPrimitiveComponent>(component);
+		if(!prim)
+			continue;
+
+		prim->SetSimulatePhysics(false);
+	}
+}
+
+void AFP_Character::ReleaseObject()
+{
+	if (!actor_to_lift_)
+		return;
+
+	for (auto* component : actor_to_lift_->GetComponents())
+	{
+		auto* prim = Cast<UPrimitiveComponent>(component);
+		if (!prim)
+			continue;
+
+		prim->SetSimulatePhysics(true);
+	}
+	actor_to_lift_ = nullptr;
 }

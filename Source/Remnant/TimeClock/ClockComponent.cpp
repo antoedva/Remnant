@@ -183,7 +183,7 @@ bool UClockComponent::GetSpawnLocation(OUT FVector& location) const
 	return true;
 }
 
-bool UClockComponent::LineTrace(OUT FHitResult & result) const
+bool UClockComponent::LineTrace(OUT FHitResult& result) const
 {
 	// TODO: Make sure to only trace against floor, with some special cases
 	const float distance = 500.0f;
