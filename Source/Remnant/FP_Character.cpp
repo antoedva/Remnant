@@ -124,6 +124,10 @@ void AFP_Character::TraverseDimension()
 
 void AFP_Character::PlaceClock()
 {
+	// Do this here as well to not mess up the shader
+	if (!traverse_allowed_)
+		return;
+
 	if (!clock_component_->ThrowClock())
 		return;
 
@@ -131,7 +135,7 @@ void AFP_Character::PlaceClock()
 	if (tm.IsTimerActive(clock_timer_handle_))
 		return;
 
-	tm.SetTimer(clock_timer_handle_, this, &AFP_Character::ClockTimerEndCB, clock_cooldown_, false);
+	tm.SetTimer(clock_timer_handle_, this, &AFP_Character::ClockTimerEndCB, clock_timer_, false);
 	traverse_allowed_ = false;
 }
 
