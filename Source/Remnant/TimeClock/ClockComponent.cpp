@@ -150,7 +150,7 @@ void UClockComponent::ToggleObjectsInClock()
 		actor->GetComponents(components);
 
 		// Remove when shader is implemented
-		actor->SetActorHiddenInGame(!actor->bHidden);
+		//actor->SetActorHiddenInGame(!actor->bHidden);
 
 		for (auto* component : components)
 		{
