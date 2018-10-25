@@ -45,15 +45,28 @@ bool UClockComponent::ThrowClock()
 	ToggleFrozenActors();
 
 	// TODO: Add traverse shader here
-	//auto* traverse = Cast<AFP_Character>(GetOwner())->GetTraverseComponent();
-	//if (!traverse)
-	//{
-	//	UE_LOG(LogTemp, Error, TEXT("Failed to get traverse component in ClockComponent!"));
-	//	return false;
-	//}
+	auto* traverse = Cast<AFP_Character>(GetOwner())->GetTraverseComponent();
+	if (!traverse)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to get traverse component in ClockComponent!"));
+		return false;
+	}
 
-	//StartShader(traverse->present_traverse_shader_);
-	//StartShader(traverse->past_traverse_shader_);
+	switch (traverse->GetCurrentDimension())
+	{
+	case UTraverseComponent::PAST:
+	{
+		StartShader(traverse->present_traverse_shader_);
+		break;
+	}
+	case UTraverseComponent::PRESENT:
+	{
+		StartShader(traverse->past_traverse_shader_);
+		break;
+	}
+	default:
+		break;
+	}
 
 	return true;
 }
@@ -85,15 +98,28 @@ bool UClockComponent::PickUpClock(const bool ignore_linetrace)
 	current_actors_in_clock_.Empty();
 	actors_to_freeze_.Empty();
 
-	//auto* traverse = Cast<AFP_Character>(GetOwner())->GetTraverseComponent();
-	//if (!traverse)
-	//{
-	//	UE_LOG(LogTemp, Error, TEXT("Failed to get traverse component in ClockComponent!"));
-	//	return false;
-	//}
-	//StopShader(traverse->present_traverse_shader_);
-	//StopShader(traverse->past_traverse_shader_);
-
+	auto* traverse = Cast<AFP_Character>(GetOwner())->GetTraverseComponent();
+	if (!traverse)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to get traverse component in ClockComponent!"));
+		return false;
+	}
+	switch (traverse->GetCurrentDimension())
+	{
+	case UTraverseComponent::PAST:
+	{
+		StopShader(traverse->present_traverse_shader_);
+		break;
+	}
+	case UTraverseComponent::PRESENT:
+	{
+		StopShader(traverse->past_traverse_shader_);
+		break;
+	}
+	default:
+		break;
+	};
+	
 	return true;
 }
 
@@ -173,6 +199,21 @@ bool UClockComponent::StartShader(FTraverseShader shader)
 	}
 
 	ci->SetVectorParameterValue(FName("Start Position"), spawn_location_);
+
+	auto* traverse = Cast<AFP_Character>(GetOwner())->GetTraverseComponent();
+	if (traverse->GetFirstSkipped())
+	{
+		float alpha1;
+		float alpha2;
+		ci->GetScalarParameterValue(FName("Alpha 1"), alpha1);
+		ci->GetScalarParameterValue(FName("Alpha 2"), alpha2);
+
+		// Flip between 1 or 0 alpha
+		ci->SetScalarParameterValue(FName("Alpha 1"), alpha1 == 0.0f ? 1.0f : 0.0f);
+		ci->SetScalarParameterValue(FName("Alpha 2"), alpha2 == 0.0f ? 1.0f : 0.0f);
+	}
+
+	ci->GetScalarParameterValue(FName("Distance"), last_distance_);
 	ci->SetScalarParameterValue(FName("Distance"), 250.0f); // This should be over time, and the length of the sphere
 
 	return true;
@@ -187,7 +228,20 @@ bool UClockComponent::StopShader(FTraverseShader shader)
 		return false;
 	}
 
-	ci->SetScalarParameterValue(FName("Distance"), 0.0f); // This should be over time
+	ci->SetScalarParameterValue(FName("Distance"), last_distance_); // This should be over time
+
+	auto* traverse = Cast<AFP_Character>(GetOwner())->GetTraverseComponent();
+	if (traverse->GetFirstSkipped())
+	{
+		float alpha1;
+		float alpha2;
+		ci->GetScalarParameterValue(FName("Alpha 1"), alpha1);
+		ci->GetScalarParameterValue(FName("Alpha 2"), alpha2);
+
+		// Flip between 1 or 0 alpha
+		ci->SetScalarParameterValue(FName("Alpha 1"), alpha1 == 0.0f ? 1.0f : 0.0f);
+		ci->SetScalarParameterValue(FName("Alpha 2"), alpha2 == 0.0f ? 1.0f : 0.0f);
+	}
 
 	return true;
 }
