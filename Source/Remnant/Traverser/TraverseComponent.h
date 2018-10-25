@@ -39,8 +39,6 @@ public:
 	UTraverseComponent(const FObjectInitializer& init);
 
 	void TraverseDimension();
-	void SetTraverseAllowed(const bool state) { traverse_allowed_ = state; }
-	bool GetTraverseAllowed() const { return traverse_allowed_; }
 	
 	UPROPERTY(EditAnywhere)
 	FTraverseShader past_traverse_shader_;
@@ -53,19 +51,23 @@ public:
 
 	void SpawnSphere();
 
-protected:
-	void BeginPlay() override;
-	void TickComponent(float delta_time, enum ELevelTick tick_type, FActorComponentTickFunction* this_tick_function) override;
-	
-private:
 	enum Dimension
 	{
 		PAST,
 		PRESENT
-	} dimension_;
+	};
 
-	bool traverse_allowed_;
+	bool GetFirstSkipped() const { return first_skipped_; }
+
+
+protected:
+	void BeginPlay() override;
+	void TickComponent(float delta_time, enum ELevelTick tick_type, FActorComponentTickFunction* this_tick_function) override;
 	
+
+private:
+	Dimension dimension_;
+
 	UPROPERTY(EditDefaultsOnly, Category = "LevelManager")
 	TSubclassOf<AActor> lsm_bp_;
 
@@ -88,6 +90,7 @@ private:
 	bool use_old_traverse_ = false;
 
 	FTimeline timeline_;
+	UPROPERTY(EditDefaultsOnly, Category = "Timeline")
 	UCurveFloat* curve_;
 
 	UPROPERTY(EditDefaultsOnly)
@@ -107,6 +110,10 @@ private:
 	void TimelineCB();
 	UFUNCTION()
 	void TimelineEndCB();
+
+public:
+	Dimension GetCurrentDimension() const { return dimension_; }
+
 };
 
 

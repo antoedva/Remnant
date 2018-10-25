@@ -28,17 +28,13 @@
 #define print(format, ...) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT(format), ##__VA_ARGS__), false)
 
 UTraverseComponent::UTraverseComponent(const FObjectInitializer& init)
-	: traverse_allowed_(true)
-	, dimension_(PRESENT)
+	: dimension_(PRESENT)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
 void UTraverseComponent::TraverseDimension()
 {
-	if (!traverse_allowed_)
-		return;
-
 	if (!lsm_)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Level manager not set in CH_Player->traverse_component_->LevelManager!"));
@@ -89,12 +85,28 @@ void UTraverseComponent::TraverseDimension()
 			ULevelStreaming* stream = level.Value->GetLevelStream();
 			if (!stream)
 				continue;
+			// Remove when the clock shader is implemented
+			//if (level.Key == LevelID::OBJECT)
+			//{
+			//	// Change visibility on items depending on which dimension is current 
+			//	for (AActor* actor : stream->GetLoadedLevel()->Actors)
+			//	{
+			//		if (!actor)
+			//			continue;
+
+			//		if (!actor->HasValidRootComponent())
+			//			continue;
+
+			//		ToggleObjectVisibility(actor);
+			//	}
+			//}
+			// !
 
 			level_actor_arrays_.Add(level.Key, stream->GetLoadedLevel()->Actors);
 		}
 
 		timeline_.PlayFromStart();
-		SpawnSphere();
+		//SpawnSphere();
 		TraverseShaderStart(past_traverse_shader_);
 		TraverseShaderStart(present_traverse_shader_);
 		first_skipped_ = true;
@@ -161,22 +173,22 @@ void UTraverseComponent::BeginPlay()
 				stream->SetShouldBeVisible(false);
 			else
 			{
-				level_bounds_ = level.Value->GetLeveLBounds();
+				level_bounds_ = level.Value->GetLevelBounds();
 				level_length_ = level_bounds_.GetExtent().Distance(level_bounds_.Min, level_bounds_.Max);
 
-				if(level_length_ == 0.0f)
+				if (level_length_ == 0.0f)
 					UE_LOG(LogTemp, Warning, TEXT("Level length is 0! Make sure you have a level streaming volume that covers the map!"))
 
-				for (auto* actor : actors)
-				{
-					auto* light = Cast<ALight>(actor);
-					if (light)
+					for (auto* actor : actors)
 					{
-						light->ToggleEnabled();
-						continue;
+						auto* light = Cast<ALight>(actor);
+						if (light)
+						{
+							light->ToggleEnabled();
+							continue;
+						}
+						actor->SetActorEnableCollision(false);
 					}
-					actor->SetActorEnableCollision(false);
-				}
 			}
 		}
 
@@ -238,19 +250,19 @@ void UTraverseComponent::TickComponent(float delta_time, ELevelTick tick_type, F
 
 	timeline_.TickTimeline(delta_time);
 
-	if (sphere_)
-	{
-		if (!UpdateLevelObjects())
-			return;
+	//if (sphere_)
+	//{
+	//	if (!UpdateLevelObjects())
+	//		return;
 
-		// magic_number_ is magical yes, but it's a carefully calculated value that makes the sphere fit inside the level bounds
-		const float max_scale = level_length_ / magic_number_;
-		// Set sphere scale based on timeline position and length
-		const float slope = max_scale / timeline_length_;
-		const float val = slope * timeline_position_;
+	//	// magic_number_ is magical yes, but it's a carefully calculated value that makes the sphere fit inside the level bounds
+	//	const float max_scale = level_length_ / magic_number_;
+	//	// Set sphere scale based on timeline position and length
+	//	const float slope = max_scale / timeline_length_;
+	//	const float val = slope * timeline_position_;
 
-		sphere_->SetActorScale3D(FVector(val));
-	}
+	//	sphere_->SetActorScale3D(FVector(val));
+	//}
 }
 
 void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
@@ -365,6 +377,7 @@ bool UTraverseComponent::UpdateLevelObjects()
 
 bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 {
+	// Used to keep track on which array is empty
 	bool is_empty[3] = { false, false, false };
 
 	for (auto& a : level_actor_arrays_)
@@ -450,14 +463,19 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 void UTraverseComponent::SetupTimeline()
 {
 	// Set default value here because UPROPERTY seems to mess things up :(
-	if (timeline_length_ == 0.0f)
-		timeline_length_ = 5.0f;
+	//if (timeline_length_ == 0.0f)
+		//timeline_length_ = 5.0f;
+	//curve_ = NewObject<UCurveFloat>();
+	//timeline_.SetTimelineLengthMode(TL_TimelineLength);
+	//timeline_.SetTimelineLength(timeline_length_);
+	//curve_->FloatCurve.AddKey(0.0f, 0.0f);
+	//curve_->FloatCurve.AddKey(timeline_.GetTimelineLength(), level_length_ * 0.5f);
 
-	curve_ = NewObject<UCurveFloat>();
-	timeline_.SetTimelineLengthMode(TL_TimelineLength);
-	timeline_.SetTimelineLength(timeline_length_);
-	curve_->FloatCurve.AddKey(0.0f, 0.0f);
-	curve_->FloatCurve.AddKey(timeline_.GetTimelineLength(), level_length_ * 0.5f);
+	if (!curve_)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Traverse float curve not set!"));
+		return;
+	}
 
 	FOnTimelineFloat tl_cb;
 	FOnTimelineEventStatic tl_end_cb;
@@ -466,10 +484,18 @@ void UTraverseComponent::SetupTimeline()
 	tl_end_cb.BindUFunction(this, FName{ TEXT("TimelineEndCB") });
 	timeline_.AddInterpFloat(curve_, tl_cb);
 	timeline_.SetTimelineFinishedFunc(tl_end_cb);
+
+	timeline_length_ = curve_->GetFloatValue(timeline_.GetTimelineLength());
 }
 
 void UTraverseComponent::TimelineCB()
 {
+	if (!curve_)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Traverse float curve not set!"));
+		return;
+	}
+
 	timeline_position_ = timeline_.GetPlaybackPosition();
 	curve_value_ = curve_->GetFloatValue(timeline_position_);
 
@@ -478,6 +504,8 @@ void UTraverseComponent::TimelineCB()
 
 	if (!present_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), curve_value_))
 		UE_LOG(LogTemp, Warning, TEXT("Failed to find distance paramater"));
+
+	UpdateLevelObjects();
 }
 
 void UTraverseComponent::TimelineEndCB()
@@ -488,12 +516,11 @@ void UTraverseComponent::TimelineEndCB()
 	if (!present_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), level_length_))
 		UE_LOG(LogTemp, Warning, TEXT("Failed to find distance paramater"));
 
-
 	ChangeActorCollision(true);
-	if (sphere_)
-	{
-		GetWorld()->DestroyActor(sphere_);
-		sphere_ = nullptr;
-	}
+	//if (sphere_)
+	//{
+	//	GetWorld()->DestroyActor(sphere_);
+	//	sphere_ = nullptr;
+	//}
 }
 

@@ -24,12 +24,12 @@ struct FLevel
 	ULevelStreaming* GetLevelStream() { return level_stream_; }
 	
 	void SetLevelBounds(const FBox& bounds) { level_bounds_ = bounds; }
-	FBox GetLeveLBounds() const { return level_bounds_; }
+	FBox GetLevelBounds() const { return level_bounds_; }
 
 	void SetID(LevelID id) { id_ = id; }
 	LevelID GetID() const { return id_; }
 
-	ALevelStreamingVolume* GetVolume() const { return volume_; }
+	ALevelStreamingVolume* GetVolume() const { if (!volume_) UE_LOG(LogTemp, Error, TEXT("Level volume is nullptr! You will crash if you traverse!")); return volume_; }
 
 private:
 	ULevelStreaming* level_stream_;

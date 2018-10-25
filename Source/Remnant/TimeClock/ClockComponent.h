@@ -20,7 +20,7 @@ public:
 	UClockComponent();
 
 	bool ThrowClock();
-	bool PickUpClock();
+	bool PickUpClock(const bool ignore_linetrace = false);
 
 protected:
 	void BeginPlay() override;
@@ -42,7 +42,11 @@ private:
 	void ToggleObjectsInClock();
 	bool StartShader(FTraverseShader shader);
 	bool StopShader(FTraverseShader shader);
+	float last_distance_;
 
 	TSet<AActor*> current_actors_in_clock_;
-	TSet<AActor*> GetOverlappingActors() const;
+	bool GetOverlappingActors(TSet<AActor*>& out_actors, TSubclassOf<AActor> filter = nullptr) const;
+
+	TSet<AActor*> actors_to_freeze_;
+	void ToggleFrozenActors();
 };

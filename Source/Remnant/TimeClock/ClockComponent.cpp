@@ -7,6 +7,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
+
 #include "DrawDebugHelpers.h"
 #include "Engine/LevelStreaming.h"
 #include "Engine/World.h"
@@ -18,6 +19,9 @@
 #include "Materials/MaterialParameterCollection.h"
 #include "Materials/MaterialParameterCollectionInstance.h"
 
+#include "../PuzzleSystem/TriggerBroadcastChannel.h"
+#include "../PuzzleSystem/Actors/TriggerReceiverActor.h"
+
 UClockComponent::UClockComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -25,8 +29,15 @@ UClockComponent::UClockComponent()
 
 bool UClockComponent::ThrowClock()
 {
-	if (!clock_bp_ || !base_item_ || clock_)
+	// Already exists
+	if (clock_)
 		return false;
+
+	if (!clock_bp_ || !base_item_)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to get clock or base item!"));
+		return false;
+	}
 
 	if (!GetSpawnLocation(spawn_location_))
 		return false;
@@ -34,36 +45,56 @@ bool UClockComponent::ThrowClock()
 	clock_ = GetWorld()->SpawnActor<AActor>(clock_bp_, spawn_location_, FRotator(0.0f));
 
 	// Save our overlapped actors so we know what to remove later on
-	current_actors_in_clock_ = GetOverlappingActors();
+	GetOverlappingActors(current_actors_in_clock_, base_item_);
+	GetOverlappingActors(actors_to_freeze_);
+
 	ToggleObjectsInClock();
+	ToggleFrozenActors();
 
 	// TODO: Add traverse shader here
-	//auto* traverse = Cast<AFP_Character>(GetOwner())->GetTraverseComponent();
-	//if (!traverse)
-	//{
-	//	UE_LOG(LogTemp, Error, TEXT("Failed to get traverse component in ClockComponent!"));
-	//	return false;
-	//}
+	auto* traverse = Cast<AFP_Character>(GetOwner())->GetTraverseComponent();
+	if (!traverse)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to get traverse component in ClockComponent!"));
+		return false;
+	}
 
-	//StartShader(traverse->present_traverse_shader_);
-	//StartShader(traverse->past_traverse_shader_);
+	switch (traverse->GetCurrentDimension())
+	{
+	case UTraverseComponent::PAST:
+	{
+		StartShader(traverse->present_traverse_shader_);
+		break;
+	}
+	case UTraverseComponent::PRESENT:
+	{
+		StartShader(traverse->past_traverse_shader_);
+		break;
+	}
+	default:
+		break;
+	}
 
 	return true;
 }
 
-bool UClockComponent::PickUpClock()
+bool UClockComponent::PickUpClock(const bool ignore_linetrace)
 {
 	if (!clock_)
 		return false;
 
-	FHitResult result;
-	if (!LineTrace(result))
-		return false;
+	if (!ignore_linetrace)
+	{
+		FHitResult result;
+		if (!LineTrace(result))
+			return false;
 
-	if (result.Actor != clock_)
-		return false;
+		if (result.Actor != clock_)
+			return false;
+	}
 
 	ToggleObjectsInClock();
+	ToggleFrozenActors();
 
 	if (!GetWorld()->DestroyActor(clock_))
 		return false;
@@ -72,16 +103,30 @@ bool UClockComponent::PickUpClock()
 
 	// Clear the set of actors
 	current_actors_in_clock_.Empty();
+	actors_to_freeze_.Empty();
 
-	//auto* traverse = Cast<AFP_Character>(GetOwner())->GetTraverseComponent();
-	//if (!traverse)
-	//{
-	//	UE_LOG(LogTemp, Error, TEXT("Failed to get traverse component in ClockComponent!"));
-	//	return false;
-	//}
-	//StopShader(traverse->present_traverse_shader_);
-	//StopShader(traverse->past_traverse_shader_);
-
+	auto* traverse = Cast<AFP_Character>(GetOwner())->GetTraverseComponent();
+	if (!traverse)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to get traverse component in ClockComponent!"));
+		return false;
+	}
+	switch (traverse->GetCurrentDimension())
+	{
+	case UTraverseComponent::PAST:
+	{
+		StopShader(traverse->present_traverse_shader_);
+		break;
+	}
+	case UTraverseComponent::PRESENT:
+	{
+		StopShader(traverse->past_traverse_shader_);
+		break;
+	}
+	default:
+		break;
+	};
+	
 	return true;
 }
 
@@ -137,6 +182,9 @@ void UClockComponent::ToggleObjectsInClock()
 		TArray<UActorComponent*, TInlineAllocator<2>> components;
 		actor->GetComponents(components);
 
+		// Remove when shader is implemented
+		//actor->SetActorHiddenInGame(!actor->bHidden);
+
 		for (auto* component : components)
 		{
 			auto* primitive_component = Cast<UPrimitiveComponent>(component);
@@ -158,6 +206,21 @@ bool UClockComponent::StartShader(FTraverseShader shader)
 	}
 
 	ci->SetVectorParameterValue(FName("Start Position"), spawn_location_);
+
+	auto* traverse = Cast<AFP_Character>(GetOwner())->GetTraverseComponent();
+	if (traverse->GetFirstSkipped())
+	{
+		float alpha1;
+		float alpha2;
+		ci->GetScalarParameterValue(FName("Alpha 1"), alpha1);
+		ci->GetScalarParameterValue(FName("Alpha 2"), alpha2);
+
+		// Flip between 1 or 0 alpha
+		ci->SetScalarParameterValue(FName("Alpha 1"), alpha1 == 0.0f ? 1.0f : 0.0f);
+		ci->SetScalarParameterValue(FName("Alpha 2"), alpha2 == 0.0f ? 1.0f : 0.0f);
+	}
+
+	ci->GetScalarParameterValue(FName("Distance"), last_distance_);
 	ci->SetScalarParameterValue(FName("Distance"), 250.0f); // This should be over time, and the length of the sphere
 
 	return true;
@@ -172,14 +235,27 @@ bool UClockComponent::StopShader(FTraverseShader shader)
 		return false;
 	}
 
-	ci->SetScalarParameterValue(FName("Distance"), 0.0f); // This should be over time, and the length of the sphere
+	ci->SetScalarParameterValue(FName("Distance"), last_distance_); // This should be over time
+
+	auto* traverse = Cast<AFP_Character>(GetOwner())->GetTraverseComponent();
+	if (traverse->GetFirstSkipped())
+	{
+		float alpha1;
+		float alpha2;
+		ci->GetScalarParameterValue(FName("Alpha 1"), alpha1);
+		ci->GetScalarParameterValue(FName("Alpha 2"), alpha2);
+
+		// Flip between 1 or 0 alpha
+		ci->SetScalarParameterValue(FName("Alpha 1"), alpha1 == 0.0f ? 1.0f : 0.0f);
+		ci->SetScalarParameterValue(FName("Alpha 2"), alpha2 == 0.0f ? 1.0f : 0.0f);
+	}
 
 	return true;
 }
 
-TSet<AActor*> UClockComponent::GetOverlappingActors() const
+bool UClockComponent::GetOverlappingActors(TSet<AActor*>& out_actors, TSubclassOf<AActor> filter) const
 {
-	TSet<AActor*> overlapping_actors;
+	//TSet<AActor*> overlapping_actors;
 
 	TSet<UActorComponent*> clock_components = clock_->GetComponents();
 	for (auto* component : clock_components)
@@ -190,8 +266,8 @@ TSet<AActor*> UClockComponent::GetOverlappingActors() const
 		if (component->ComponentHasTag("Collision"))
 		{
 			auto* collision = Cast<USphereComponent>(component);
-			collision->GetOverlappingActors(overlapping_actors, base_item_);
-			break;
+			collision->GetOverlappingActors(out_actors, filter);
+			return true;
 		}
 	}
 
@@ -210,8 +286,29 @@ TSet<AActor*> UClockComponent::GetOverlappingActors() const
 
 	// Clear scoped sets
 	//actors_to_remove.Empty();
-	clock_components.Empty();
+	//clock_components.Empty();
 
-	return overlapping_actors;
+	//return overlapping_actors;
+
+	return false;
+}
+
+void UClockComponent::ToggleFrozenActors()
+{
+	for (auto* actor : actors_to_freeze_)
+	{
+		if (!actor)
+			continue;
+
+		auto* trigger_actor = Cast<ATriggerReceiverActor>(actor);
+
+		if (!trigger_actor)
+			continue;
+
+		// Trigger channel 10 or 11 based on whether whether we want to freeze or unfreeze it
+		trigger_actor->TriggerThisReceiver(static_cast<int>(
+			trigger_actor->GetIsFrozen() ? ETriggerBroadcastChannel::CHANNEL_ELEVEN : ETriggerBroadcastChannel::CHANNEL_TEN));
+		trigger_actor->SetFrozen(!trigger_actor->GetIsFrozen());
+	}
 }
 
