@@ -29,8 +29,15 @@ UClockComponent::UClockComponent()
 
 bool UClockComponent::ThrowClock()
 {
-	if (!clock_bp_ || !base_item_ || clock_)
+	// Already exists
+	if (clock_)
 		return false;
+
+	if (!clock_bp_ || !base_item_)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to get clock or base item!"));
+		return false;
+	}
 
 	if (!GetSpawnLocation(spawn_location_))
 		return false;
