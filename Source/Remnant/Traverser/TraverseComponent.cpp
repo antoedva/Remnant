@@ -240,7 +240,7 @@ void UTraverseComponent::TickComponent(float delta_time, ELevelTick tick_type, F
 			return;
 
 		// magic_number_ is magical yes, but it's a carefully calculated value that makes the sphere fit inside the level bounds
-		const float max_scale = level_length_ / magic_number_;
+		const float max_scale = curve_->GetFloatValue(timeline_length_) / magic_number_;
 		// Set sphere scale based on timeline position and length
 		const float slope = max_scale / timeline_length_;
 		const float val = slope * timeline_position_;
