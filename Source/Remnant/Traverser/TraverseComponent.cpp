@@ -46,12 +46,51 @@ void UTraverseComponent::TraverseDimension()
 		if (!level.Value)
 			continue;
 
-		TArray<ULevelStreaming*> streams = level.Value->GetLevelStreams();
-		if (!(streams.Num() > 0))
-			continue;
+		TArray<AActor*> past_actors;
+		TArray<AActor*> present_actors;
+		TArray<AActor*> obj_actors;
 
-		for (auto* stream : streams)
-			level_actor_arrays_.Add(level.Key, stream->GetLoadedLevel()->Actors);
+		switch (level.Key)
+		{
+		case LevelID::OBJECT:
+		{
+			for (auto* stream : level.Value->GetLevelStreams())
+			{
+				TArray<AActor*> actors = stream->GetLoadedLevel()->Actors;
+				for(auto* actor : actors)
+					obj_actors.Add(actor);
+			}
+
+			level_actor_arrays_.Add(level.Key, obj_actors);
+			break;
+		}
+		case LevelID::PRESENT:
+		{
+			for (auto* stream : level.Value->GetLevelStreams())
+			{
+				TArray<AActor*> actors = stream->GetLoadedLevel()->Actors;
+				for (auto* actor : actors)
+					present_actors.Add(actor);;
+			}
+
+			level_actor_arrays_.Add(level.Key, present_actors);
+		}
+		case LevelID::PAST:
+		{
+			for (auto* stream : level.Value->GetLevelStreams())
+			{
+				TArray<AActor*> actors = stream->GetLoadedLevel()->Actors;
+				for (auto* actor : actors)
+					past_actors.Add(actor);
+			}
+
+			level_actor_arrays_.Add(level.Key, past_actors);
+			break;
+		}
+		default:
+			break;
+		}
+
 	}
 
 	timeline_.PlayFromStart();

@@ -158,7 +158,7 @@ bool UClockComponent::LineTrace(OUT FHitResult& result) const
 	const FVector trace_end = trace_start + (camera->GetForwardVector() * throw_distance_);
 
 	const FCollisionQueryParams query_params(TEXT(""), true, player_);
-	DrawDebugLine(GetWorld(), trace_start, trace_end, FColor(255, 0, 0), true, 5.0f, 0.0f, 1.0f);
+	//DrawDebugLine(GetWorld(), trace_start, trace_end, FColor(255, 0, 0), true, 5.0f, 0.0f, 1.0f);
 
 	if (!GetWorld()->LineTraceSingleByChannel(result, trace_start, trace_end, ECC_GameTraceChannel1, query_params))
 		return false;
