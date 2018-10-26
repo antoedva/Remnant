@@ -88,11 +88,11 @@ void UInteractComponent::TickingRaycast()
 	}
 }
 
-void UInteractComponent::AttemptInteract()
+bool UInteractComponent::AttemptInteract()
 {
 	if (!currentHitActor)
 	{
-		return;
+		return false;
 	}
 
 	AInteractableActorBase* interactableActor = Cast<AInteractableActorBase>(currentHitActor);
@@ -101,12 +101,14 @@ void UInteractComponent::AttemptInteract()
 		if (cachedInventoryComponent)
 		{
 			interactableActor->InteractWith(cachedInventoryComponent);
+			return true;
 		}
 		else
 		{
 			UE_LOG(LogTemp, Error, TEXT("variable cachedInventoryComponent in InteractComponent is nullptr!"));
 		}
 	}
+	return false;
 }
 
 bool UInteractComponent::DoRaycast(OUT FHitResult& hitResult)
