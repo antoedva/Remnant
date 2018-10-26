@@ -123,8 +123,6 @@ void UClockComponent::TickComponent(float delta_time, ELevelTick tick_type, FAct
 void UClockComponent::SetupClock()
 {
 	clock_ = GetWorld()->SpawnActor<AActor>(clock_bp_, FVector(0.0f), FRotator(0.0f));
-	FVector min;
-	FVector max;
 	for (auto* component : clock_->GetComponents())
 	{
 		if (!component)
@@ -133,12 +131,11 @@ void UClockComponent::SetupClock()
 		if (component->ComponentHasTag("Mesh"))
 		{
 			auto* mesh = Cast<UStaticMeshComponent>(component);
-			mesh->GetLocalBounds(min, max);
+			clock_length_ = mesh->Bounds.SphereRadius;
 			break;
 		}
 	}
 
-	clock_length_ = min.Distance(min, max) * 0.38f;
 	GetWorld()->DestroyActor(clock_);
 	clock_ = nullptr;
 }
