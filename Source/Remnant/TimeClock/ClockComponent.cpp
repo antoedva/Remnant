@@ -156,10 +156,9 @@ bool UClockComponent::GetSpawnLocation(OUT FVector& location) const
 bool UClockComponent::LineTrace(OUT FHitResult& result) const
 {
 	// TODO: Make sure to only trace against floor, with some special cases
-	const float distance = 500.0f;
 	const UCameraComponent* camera = player_->GetCameraComponent();
 	const FVector trace_start = camera->GetComponentLocation();
-	const FVector trace_end = trace_start + (camera->GetForwardVector() * distance);
+	const FVector trace_end = trace_start + (camera->GetForwardVector() * throw_distance_);
 
 	const FCollisionQueryParams query_params(TEXT(""), true, player_);
 	DrawDebugLine(GetWorld(), trace_start, trace_end, FColor(255, 0, 0), true, 5.0f, 0.0f, 1.0f);
