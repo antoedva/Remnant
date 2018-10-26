@@ -40,30 +40,15 @@ public:
 
 	void TraverseDimension();
 	
-	UPROPERTY(EditAnywhere)
-	FTraverseShader past_traverse_shader_;
-	
-	UPROPERTY(EditAnywhere)
-	FTraverseShader present_traverse_shader_;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Traverse")
-	TSubclassOf<AActor> sphere_bp_;
-
-	void SpawnSphere();
-
 	enum Dimension
 	{
 		PAST,
 		PRESENT
 	};
 
-	bool GetFirstSkipped() const { return first_skipped_; }
-
-
 protected:
 	void BeginPlay() override;
 	void TickComponent(float delta_time, enum ELevelTick tick_type, FActorComponentTickFunction* this_tick_function) override;
-	
 
 private:
 	Dimension dimension_;
@@ -75,36 +60,38 @@ private:
 	FBox level_bounds_;
 	float level_length_ = 0.0f;
 
-	void ToggleObjectVisibility(AActor* actor);
+	UPROPERTY(EditDefaultsOnly, Category = "Traverse")
+	FTraverseShader traverse_shader_;
 	void InitializeShaders();
 	void TraverseShaderStart(FTraverseShader shader);
 
-	AActor* sphere_;
+	UPROPERTY(EditDefaultsOnly, Category = "Traverse")
+	TSubclassOf<AActor> sphere_bp_;
 
+	AActor* sphere_;
+	void SpawnSphere();
+
+private:
 	TMap<LevelID, TArray<AActor*>> level_actor_arrays_;
 	void SortActors(AActor* player, TArray<AActor*> array_to_sort, TArray<AActor*>& output);
 	bool UpdateLevelObjects();
 	bool ChangeActorCollision(const bool ignore_distance = false);
 
-	UPROPERTY(EditDefaultsOnly, Category = "Debug")
-	bool use_old_traverse_ = false;
-
+private:
 	FTimeline timeline_;
 	UPROPERTY(EditDefaultsOnly, Category = "Timeline")
 	UCurveFloat* curve_;
 
-	UPROPERTY(EditDefaultsOnly)
-	float timeline_length_;
-	
 	// Magic offset to make the sphere line up with the traverse shader
 	UPROPERTY(EditDefaultsOnly)
-	float magic_number_ = 100.0f;
+	float magic_number_ = 50.0f;
 	
 	float curve_value_;
+	float timeline_length_;
 	float timeline_position_;
+	bool first_skipped_ = false;
 
 	void SetupTimeline();
-	bool first_skipped_ = false;
 
 	UFUNCTION()
 	void TimelineCB();
@@ -113,7 +100,8 @@ private:
 
 public:
 	Dimension GetCurrentDimension() const { return dimension_; }
-
+	bool GetFirstSkipped() const { return first_skipped_; }
+	FTraverseShader GetTraverseShader() { return traverse_shader_; }
 };
 
 

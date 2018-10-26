@@ -57,22 +57,7 @@ bool UClockComponent::ThrowClock()
 		return false;
 	}
 
-	//switch (traverse_component_->GetCurrentDimension())
-	//{
-	//case UTraverseComponent::PAST:
-	//{
-	//	StartShader(traverse_component_->present_traverse_shader_);
-	//	break;
-	//}
-	//case UTraverseComponent::PRESENT:
-	//{
-		StartShader(traverse_component_->past_traverse_shader_);
-//		break;
-//}
-//	default:
-//		break;
-//	}
-//
+	StartShader(traverse_component_->GetTraverseShader());
 	timeline_.PlayFromStart();
 
 	return true;
@@ -130,7 +115,7 @@ void UClockComponent::BeginPlay()
 void UClockComponent::TickComponent(float delta_time, ELevelTick tick_type, FActorComponentTickFunction* this_tick_function)
 {
 	Super::TickComponent(delta_time, tick_type, this_tick_function);
-	
+
 	timeline_.TickTimeline(delta_time);
 
 }
@@ -262,8 +247,6 @@ bool UClockComponent::StopShader(FTraverseShader shader)
 
 bool UClockComponent::GetOverlappingActors(TSet<AActor*>& out_actors, TSubclassOf<AActor> filter) const
 {
-	//TSet<AActor*> overlapping_actors;
-
 	TSet<UActorComponent*> clock_components = clock_->GetComponents();
 	for (auto* component : clock_components)
 	{
@@ -277,25 +260,6 @@ bool UClockComponent::GetOverlappingActors(TSet<AActor*>& out_actors, TSubclassO
 			return true;
 		}
 	}
-
-	// Keep this if we want to change how the clock works
-	// Get all actors that are already visible
-	//TSet<AActor*> actors_to_remove;
-	//for (auto* actor : overlapping_actors)
-	//{
-		//if (!actor->bHidden)
-			//actors_to_remove.Add(actor);
-	//}
-
-	 //Remove those actors from the actor set
-	//for (auto* actor : actors_to_remove)
-		//overlapping_actors.Remove(actor);
-
-	// Clear scoped sets
-	//actors_to_remove.Empty();
-	//clock_components.Empty();
-
-	//return overlapping_actors;
 
 	return false;
 }
@@ -343,42 +307,14 @@ void UClockComponent::TimelineCB()
 	const float timeline_position = timeline_.GetPlaybackPosition();
 	const float curve_value = curve_->GetFloatValue(timeline_position);
 
-	//switch (traverse_component_->GetCurrentDimension())
-	//{
-	//case UTraverseComponent::PAST:
-	//{
-	//	traverse_component_->present_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), curve_value);
-	//	break;
-	//}
-	//case UTraverseComponent::PRESENT:
-	//{
-		traverse_component_->past_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), curve_value);
-		//break;
-	//}
-	//default:
-		//break;
-	//};
+	traverse_component_->GetTraverseShader().collection_instance_->SetScalarParameterValue(FName("Distance"), curve_value);
 }
 
 void UClockComponent::TimelineEndCB()
 {
 	if (has_reversed_)
 	{
-	//	switch (traverse_component_->GetCurrentDimension())
-	//	{
-	//	case UTraverseComponent::PAST:
-	//	{
-	//		StopShader(traverse_component_->present_traverse_shader_);
-	//		break;
-	//	}
-	//	case UTraverseComponent::PRESENT:
-	//	{
-			StopShader(traverse_component_->past_traverse_shader_);
-//			break;
-//}
-//		default:
-//			break;
-//		};
+		StopShader(traverse_component_->GetTraverseShader());
 		has_reversed_ = false;
 	}
 }
