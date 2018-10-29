@@ -21,7 +21,7 @@ public:
 	UInteractComponent();
 
 	void TickingRaycast();
-	void AttemptInteract();
+	bool AttemptInteract();
 
 protected:
 	

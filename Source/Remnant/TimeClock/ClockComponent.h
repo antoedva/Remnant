@@ -39,6 +39,9 @@ private:
 	AActor* clock_;
 	FVector spawn_location_;
 	float clock_length_;
+	UPROPERTY(EditDefaultsOnly, Category = "Clock")
+	float throw_distance_ = 1000.0f;
+
 	// Is only used to get the length of the clock in BeginPlay
 	void SetupClock();
 
