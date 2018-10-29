@@ -57,22 +57,7 @@ bool UClockComponent::ThrowClock()
 		return false;
 	}
 
-	//switch (traverse_component_->GetCurrentDimension())
-	//{
-	//case UTraverseComponent::PAST:
-	//{
-	//	StartShader(traverse_component_->present_traverse_shader_);
-	//	break;
-	//}
-	//case UTraverseComponent::PRESENT:
-	//{
-		StartShader(traverse_component_->past_traverse_shader_);
-//		break;
-//}
-//	default:
-//		break;
-//	}
-//
+	StartShader(traverse_component_->GetTraverseShader());
 	timeline_.PlayFromStart();
 
 	return true;
@@ -130,7 +115,7 @@ void UClockComponent::BeginPlay()
 void UClockComponent::TickComponent(float delta_time, ELevelTick tick_type, FActorComponentTickFunction* this_tick_function)
 {
 	Super::TickComponent(delta_time, tick_type, this_tick_function);
-	
+
 	timeline_.TickTimeline(delta_time);
 
 }
@@ -138,8 +123,6 @@ void UClockComponent::TickComponent(float delta_time, ELevelTick tick_type, FAct
 void UClockComponent::SetupClock()
 {
 	clock_ = GetWorld()->SpawnActor<AActor>(clock_bp_, FVector(0.0f), FRotator(0.0f));
-	FVector min;
-	FVector max;
 	for (auto* component : clock_->GetComponents())
 	{
 		if (!component)
@@ -148,12 +131,11 @@ void UClockComponent::SetupClock()
 		if (component->ComponentHasTag("Mesh"))
 		{
 			auto* mesh = Cast<UStaticMeshComponent>(component);
-			mesh->GetLocalBounds(min, max);
+			clock_length_ = mesh->Bounds.SphereRadius;
 			break;
 		}
 	}
 
-	clock_length_ = min.Distance(min, max) * 0.38f;
 	GetWorld()->DestroyActor(clock_);
 	clock_ = nullptr;
 }
@@ -171,13 +153,12 @@ bool UClockComponent::GetSpawnLocation(OUT FVector& location) const
 bool UClockComponent::LineTrace(OUT FHitResult& result) const
 {
 	// TODO: Make sure to only trace against floor, with some special cases
-	const float distance = 500.0f;
 	const UCameraComponent* camera = player_->GetCameraComponent();
 	const FVector trace_start = camera->GetComponentLocation();
-	const FVector trace_end = trace_start + (camera->GetForwardVector() * distance);
+	const FVector trace_end = trace_start + (camera->GetForwardVector() * throw_distance_);
 
 	const FCollisionQueryParams query_params(TEXT(""), true, player_);
-	DrawDebugLine(GetWorld(), trace_start, trace_end, FColor(255, 0, 0), true, 5.0f, 0.0f, 1.0f);
+	//DrawDebugLine(GetWorld(), trace_start, trace_end, FColor(255, 0, 0), true, 5.0f, 0.0f, 1.0f);
 
 	if (!GetWorld()->LineTraceSingleByChannel(result, trace_start, trace_end, ECC_GameTraceChannel1, query_params))
 		return false;
@@ -262,8 +243,6 @@ bool UClockComponent::StopShader(FTraverseShader shader)
 
 bool UClockComponent::GetOverlappingActors(TSet<AActor*>& out_actors, TSubclassOf<AActor> filter) const
 {
-	//TSet<AActor*> overlapping_actors;
-
 	TSet<UActorComponent*> clock_components = clock_->GetComponents();
 	for (auto* component : clock_components)
 	{
@@ -277,25 +256,6 @@ bool UClockComponent::GetOverlappingActors(TSet<AActor*>& out_actors, TSubclassO
 			return true;
 		}
 	}
-
-	// Keep this if we want to change how the clock works
-	// Get all actors that are already visible
-	//TSet<AActor*> actors_to_remove;
-	//for (auto* actor : overlapping_actors)
-	//{
-		//if (!actor->bHidden)
-			//actors_to_remove.Add(actor);
-	//}
-
-	 //Remove those actors from the actor set
-	//for (auto* actor : actors_to_remove)
-		//overlapping_actors.Remove(actor);
-
-	// Clear scoped sets
-	//actors_to_remove.Empty();
-	//clock_components.Empty();
-
-	//return overlapping_actors;
 
 	return false;
 }
@@ -343,42 +303,14 @@ void UClockComponent::TimelineCB()
 	const float timeline_position = timeline_.GetPlaybackPosition();
 	const float curve_value = curve_->GetFloatValue(timeline_position);
 
-	//switch (traverse_component_->GetCurrentDimension())
-	//{
-	//case UTraverseComponent::PAST:
-	//{
-	//	traverse_component_->present_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), curve_value);
-	//	break;
-	//}
-	//case UTraverseComponent::PRESENT:
-	//{
-		traverse_component_->past_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), curve_value);
-		//break;
-	//}
-	//default:
-		//break;
-	//};
+	traverse_component_->GetTraverseShader().collection_instance_->SetScalarParameterValue(FName("Distance"), curve_value);
 }
 
 void UClockComponent::TimelineEndCB()
 {
 	if (has_reversed_)
 	{
-	//	switch (traverse_component_->GetCurrentDimension())
-	//	{
-	//	case UTraverseComponent::PAST:
-	//	{
-	//		StopShader(traverse_component_->present_traverse_shader_);
-	//		break;
-	//	}
-	//	case UTraverseComponent::PRESENT:
-	//	{
-			StopShader(traverse_component_->past_traverse_shader_);
-//			break;
-//}
-//		default:
-//			break;
-//		};
+		StopShader(traverse_component_->GetTraverseShader());
 		has_reversed_ = false;
 	}
 }
