@@ -22,6 +22,8 @@
 #include "UObject/ConstructorHelpers.h"
 
 AFP_Character::AFP_Character()
+: watchEnabled(false)
+, timeSphereEnabled(false)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -73,9 +75,6 @@ void AFP_Character::SetupPlayerInputComponent(UInputComponent* input_component)
 	// Common movement
 	input_component->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	input_component->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
-	input_component->BindAction("CrouchHold", IE_Pressed, this, &AFP_Character::CharacterCrouch);
-	input_component->BindAction("CrouchHold", IE_Released, this, &AFP_Character::CharacterUnCrouch);
-	input_component->BindAction("CrouchToggle", IE_Pressed, this, &AFP_Character::CharacterCrouchToggle);
 
 	input_component->BindAxis("MoveForward", this, &AFP_Character::MoveForward);
 	input_component->BindAxis("MoveRight", this, &AFP_Character::MoveRight);
@@ -102,25 +101,13 @@ void AFP_Character::MoveRight(float value)
 		AddMovementInput(GetActorRightVector(), value);
 }
 
-void AFP_Character::CharacterCrouch()
-{
-	if (!movement_component_->IsCrouching())
-		movement_component_->Crouch();
-}
-
-void AFP_Character::CharacterUnCrouch()
-{
-	if (movement_component_->IsCrouching())
-		movement_component_->UnCrouch();
-}
-
-void AFP_Character::CharacterCrouchToggle()
-{
-	movement_component_->IsCrouching() ? movement_component_->Crouch() : movement_component_->UnCrouch();
-}
-
 void AFP_Character::TraverseDimension()
 {
+	if (!developmentMode && !watchEnabled)
+	{
+		return;
+	}
+
 	if (!traverse_allowed_)
 		return;
 
@@ -133,6 +120,11 @@ void AFP_Character::TraverseDimension()
 
 void AFP_Character::PlaceClock()
 {
+	if (!developmentMode && !timeSphereEnabled)
+	{
+		return;
+	}
+
 	// Do this here as well to not mess up the shader
 	if (!traverse_allowed_)
 		return;
@@ -150,6 +142,11 @@ void AFP_Character::PlaceClock()
 
 void AFP_Character::PickupClock()
 {
+	if (!developmentMode && !timeSphereEnabled)
+	{
+		return;
+	}
+
 	auto& tm = GetWorld()->GetTimerManager();
 	if (!clock_timer_handle_.IsValid())
 		return;
@@ -209,4 +206,14 @@ void AFP_Character::ReleaseObject()
 		prim->SetSimulatePhysics(true);
 	}
 	actor_to_lift_ = nullptr;
+}
+
+void AFP_Character::EnableWatch()
+{
+	watchEnabled = true;
+}
+
+void AFP_Character::EnableTimeSphere()
+{
+	timeSphereEnabled = true;
 }
