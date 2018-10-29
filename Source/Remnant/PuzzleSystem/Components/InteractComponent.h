@@ -39,4 +39,6 @@ private:
 
 	UInventoryComponent* cachedInventoryComponent;
 
+	void ToggleHighlight(AActor* actor);
+
 };
