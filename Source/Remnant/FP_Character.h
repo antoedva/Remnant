@@ -81,6 +81,9 @@ private:
 	FVector trace_end_;
 	float distance_ = 250.0f;
 
-	bool watchEnabled = false;
-	bool timeSphereEnabled = false;
+	UPROPERTY(EditAnywhere)
+	bool developmentMode;
+
+	bool watchEnabled;
+	bool timeSphereEnabled;
 };

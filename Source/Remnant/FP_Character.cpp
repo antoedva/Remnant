@@ -22,6 +22,8 @@
 #include "UObject/ConstructorHelpers.h"
 
 AFP_Character::AFP_Character()
+: watchEnabled(false)
+, timeSphereEnabled(false)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -101,7 +103,7 @@ void AFP_Character::MoveRight(float value)
 
 void AFP_Character::TraverseDimension()
 {
-	if (!watchEnabled)
+	if (!developmentMode && !watchEnabled)
 	{
 		return;
 	}
@@ -118,7 +120,7 @@ void AFP_Character::TraverseDimension()
 
 void AFP_Character::PlaceClock()
 {
-	if (!timeSphereEnabled)
+	if (!developmentMode && !timeSphereEnabled)
 	{
 		return;
 	}
@@ -140,7 +142,7 @@ void AFP_Character::PlaceClock()
 
 void AFP_Character::PickupClock()
 {
-	if (!timeSphereEnabled)
+	if (!developmentMode && !timeSphereEnabled)
 	{
 		return;
 	}
