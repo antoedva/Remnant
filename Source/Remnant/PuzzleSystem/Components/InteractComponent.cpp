@@ -8,6 +8,7 @@
 #include "UI/InGameUI.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "Components/StaticMeshComponent.h"
 #include "FPPlayerController.h"
 #include "PuzzleSystem/Actors/PickUpActor.h"
 
@@ -56,6 +57,8 @@ void UInteractComponent::TickingRaycast()
 					{
 						FText pickupText = FText::FromString(pickupActor->GetName());
 						ui->pickupText->SetText(pickupText);
+						
+						ToggleHighlight(pickupActor);
 					}
 				}
 			}
@@ -81,6 +84,8 @@ void UInteractComponent::TickingRaycast()
 					{
 						FText pickupText = FText::FromString("");
 						ui->pickupText->SetText(pickupText);
+
+						ToggleHighlight(pickupActor);
 					}
 				}
 			}
@@ -129,4 +134,15 @@ bool UInteractComponent::DoRaycast(OUT FHitResult& hitResult)
 	}
 
 	return false;
+}
+
+void UInteractComponent::ToggleHighlight(AActor* actor)
+{
+	for (auto* comp : actor->GetComponents())
+	{
+		auto* sm = Cast<UStaticMeshComponent>(comp);
+		if(!sm)
+			continue;
+		sm->SetRenderCustomDepth(!sm->bRenderCustomDepth);
+	}
 }
