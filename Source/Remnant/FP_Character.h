@@ -31,12 +31,15 @@ public:
 	UCameraComponent* GetCameraComponent() const { return camera_component_; }
 	UTraverseComponent* GetTraverseComponent() { return traverse_component_; }
 
+	UFUNCTION(BlueprintCallable)
+	void EnableWatch();
+
+	UFUNCTION(BlueprintCallable)
+	void EnableTimeSphere();
+
 protected:
 	void MoveForward(float value);
 	void MoveRight(float value);
-	void CharacterCrouch();
-	void CharacterUnCrouch();
-	void CharacterCrouchToggle();
 	void TraverseDimension();
 	void PlaceClock();
 	void PickupClock();
@@ -77,4 +80,7 @@ private:
 	FVector trace_start_;
 	FVector trace_end_;
 	float distance_ = 250.0f;
+
+	bool watchEnabled = false;
+	bool timeSphereEnabled = false;
 };
