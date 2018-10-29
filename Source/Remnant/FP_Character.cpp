@@ -146,21 +146,19 @@ void AFP_Character::PickupClock()
 	}
 
 	auto& tm = GetWorld()->GetTimerManager();
-	if (clock_timer_handle_.IsValid())
-		clock_component_->PickUpClock(true);
-	else
-	{
-		if(!clock_component_->PickUpClock())
-			return;
-	}
+	if (!clock_timer_handle_.IsValid())
+		return;
 
+	clock_component_->PickUpClock(true);
 	GetWorld()->GetTimerManager().ClearTimer(clock_timer_handle_);
 	traverse_allowed_ = true;
 }
 
 void AFP_Character::Interact()
 {
-	interactComponent->AttemptInteract();
+	// Return if the interact was successful
+	if (interactComponent->AttemptInteract())
+		return;
 
 	PickupClock();
 }
@@ -171,13 +169,16 @@ void AFP_Character::LiftObject()
 	trace_end_ = trace_start_ + (camera_component_->GetForwardVector() * distance_);
 
 	const FCollisionQueryParams query_params(TEXT(""), true, this);
-	
+
 	FHitResult result;
-	GetWorld()->LineTraceSingleByChannel(result, trace_start_, trace_end_, ECC_PhysicsBody, query_params);
-	actor_to_lift_ = result.GetActor();
-	
-	if (!actor_to_lift_)
+	GetWorld()->LineTraceSingleByChannel(result, trace_start_, trace_end_, ECC_GameTraceChannel1, query_params);
+
+	if (!result.GetActor())
 		return;
+	if (!result.GetActor()->ActorHasTag("Pickupable"))
+		return;
+
+	actor_to_lift_ = result.GetActor();
 	
 	for (auto* component : actor_to_lift_->GetComponents())
 	{
