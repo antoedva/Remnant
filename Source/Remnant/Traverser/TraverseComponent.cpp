@@ -25,6 +25,16 @@
 
 #include "UObject/ConstructorHelpers.h"
 
+#include "PuzzleSystem/Actors/PickUpActor.h"
+#include "PuzzleSystem/Actors/InteractableActorBase.h"
+#include "PuzzleSystem/Actors/TriggerReceiverActor.h"
+#include "PuzzleSystem/Actors/Triggers/VolumeTriggerActor.h"
+
+#include "PuzzleSystem/Components/TriggerComponent.h"
+#include "PuzzleSystem/Components/InventoryComponent.h"
+#include "PuzzleSystem/Components/InteractComponent.h"
+
+
 #define print(format, ...) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT(format), ##__VA_ARGS__), false)
 
 UTraverseComponent::UTraverseComponent(const FObjectInitializer& init)
@@ -57,7 +67,7 @@ void UTraverseComponent::TraverseDimension()
 			for (auto* stream : level.Value->GetLevelStreams())
 			{
 				TArray<AActor*> actors = stream->GetLoadedLevel()->Actors;
-				for(auto* actor : actors)
+				for (auto* actor : actors)
 					obj_actors.Add(actor);
 			}
 
@@ -194,7 +204,15 @@ void UTraverseComponent::BeginPlay()
 							continue;
 
 						if (actor->ActorHasTag("Past"))
-							primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
+						{
+							if (actor->IsA(APickUpActor::StaticClass()) || actor->IsA(AInteractableActorBase::StaticClass())
+								|| actor->IsA(ATriggerReceiverActor::StaticClass()) || actor->IsA(AVolumeTriggerActor::StaticClass())
+								|| actor->IsA(UTriggerComponent::StaticClass()) || actor->IsA(UInventoryComponent::StaticClass())
+								|| actor->IsA(UInteractComponent::StaticClass()))
+								primitive_comp->SetCollisionResponseToAllChannels(ECR_Ignore);
+							else
+								primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
+						}
 
 						else if (actor->ActorHasTag("Present"))
 							primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
@@ -339,7 +357,17 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 							if (actor->ActorHasTag("Past"))
 								primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
 							else if (actor->ActorHasTag("Present"))
-								primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
+							{
+								//if(actor->ActorHasTag("Puzzle"))
+								// Do a really expensive check because tagging everything is annoying and is easy to miss
+								if (actor->IsA(APickUpActor::StaticClass()) || actor->IsA(AInteractableActorBase::StaticClass())
+									|| actor->IsA(ATriggerReceiverActor::StaticClass()) || actor->IsA(AVolumeTriggerActor::StaticClass())
+									|| actor->IsA(UTriggerComponent::StaticClass()) || actor->IsA(UInventoryComponent::StaticClass())
+									|| actor->IsA(UInteractComponent::StaticClass()))
+									primitive_comp->SetCollisionResponseToAllChannels(ECR_Ignore);
+								else
+									primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
+							}
 
 							break;
 						}
@@ -348,7 +376,18 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 							if (actor->ActorHasTag("Present"))
 								primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
 							else if (actor->ActorHasTag("Past"))
-								primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
+							{
+								//if (actor->ActorHasTag("Puzzle"))
+								// And another really expensive check
+								if (actor->IsA(APickUpActor::StaticClass()) || actor->IsA(AInteractableActorBase::StaticClass())
+									|| actor->IsA(ATriggerReceiverActor::StaticClass()) || actor->IsA(AVolumeTriggerActor::StaticClass())
+									|| actor->IsA(UTriggerComponent::StaticClass()) || actor->IsA(UInventoryComponent::StaticClass())
+									|| actor->IsA(UInteractComponent::StaticClass()))
+									primitive_comp->SetCollisionResponseToAllChannels(ECR_Ignore);
+								else
+									primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
+
+							}
 							break;
 						}
 						default:
