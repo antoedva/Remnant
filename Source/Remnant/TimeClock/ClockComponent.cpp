@@ -168,16 +168,16 @@ void UClockComponent::ToggleObjectsInClock(TSet<AActor*> actor_set)
 		if (!actor)
 			return;
 
-		TArray<UActorComponent*, TInlineAllocator<2>> components;
-		actor->GetComponents(components);
-
-		for (auto* component : components)
+		for (auto* component : actor->GetComponents())
 		{
-			auto* primitive_component = Cast<UPrimitiveComponent>(component);
-			if (!primitive_component)
+			auto* prim = Cast<UPrimitiveComponent>(component);
+			if (!prim)
 				continue;
 
-			primitive_component->SetCollisionResponseToAllChannels(primitive_component->GetCollisionResponseToChannel(ECC_Pawn) == ECR_Block ? ECR_Overlap : ECR_Block);
+			prim->SetCollisionResponseToAllChannels(prim->GetCollisionResponseToChannel(ECC_WorldDynamic) == ECR_Block ? ECR_Overlap : ECR_Block);
+			component->OnActorEnableCollisionChanged();
+
+			break;
 		}
 	}
 }
@@ -244,10 +244,19 @@ bool UClockComponent::GetOverlappingActors(TSet<AActor*>& out_actors, TSubclassO
 		if (!component)
 			continue;
 
-		if (component->ComponentHasTag("Collision"))
+		if (component->ComponentHasTag("Mesh"))
 		{
-			auto* collision = Cast<USphereComponent>(component);
-			collision->GetOverlappingActors(out_actors, filter);
+			//auto* collision = Cast<USphereComponent>(component);
+			auto* mesh = Cast<UStaticMeshComponent>(component);
+			mesh->GetOverlappingActors(out_actors, filter);
+			//collision->GetOverlappingActors(out_actors, filter);
+
+			// Remove specific actors from array if they exist
+			if (out_actors.Contains(GetOwner()))
+				out_actors.Remove(GetOwner());
+			if (out_actors.Contains(clock_))
+				out_actors.Remove(clock_);
+
 			return true;
 		}
 	}
@@ -271,9 +280,8 @@ void UClockComponent::ToggleFrozenActors()
 		trigger_actor->TriggerThisReceiver(static_cast<int>(
 			trigger_actor->GetIsFrozen() ? ETriggerBroadcastChannel::CHANNEL_ELEVEN : ETriggerBroadcastChannel::CHANNEL_TEN));
 		trigger_actor->SetFrozen(!trigger_actor->GetIsFrozen());
-
-		ToggleObjectsInClock(actors_to_freeze_);
 	}
+	ToggleObjectsInClock(actors_to_freeze_);
 }
 
 void UClockComponent::SetupTimeline()
@@ -299,7 +307,7 @@ void UClockComponent::TimelineCB()
 	const float curve_value = curve_->GetFloatValue(timeline_position);
 
 	traverse_component_->GetTraverseShader().collection_instance_->SetScalarParameterValue(FName("Distance"), curve_value);
-	
+
 	if (!clock_)
 		return;
 
@@ -311,9 +319,9 @@ void UClockComponent::TimelineCB()
 		if (component->ComponentHasTag("Mesh"))
 		{
 			auto* mesh = Cast<UStaticMeshComponent>(component);
-			if(!mesh)
+			if (!mesh)
 				continue;
-			
+
 			// Yes I like magic
 			const float magic_number = 160.0f;
 			const float max_scale = curve_->GetFloatValue(timeline_.GetTimelineLength()) / magic_number;
