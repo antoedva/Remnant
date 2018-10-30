@@ -207,13 +207,3 @@ void AFP_Character::ReleaseObject()
 	}
 	actor_to_lift_ = nullptr;
 }
-
-void AFP_Character::EnableWatch()
-{
-	watchEnabled = true;
-}
-
-void AFP_Character::EnableTimeSphere()
-{
-	timeSphereEnabled = true;
-}
