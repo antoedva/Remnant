@@ -8,6 +8,7 @@
 #include "UI/InGameUI.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "Components/StaticMeshComponent.h"
 #include "FPPlayerController.h"
 #include "PuzzleSystem/Actors/PickUpActor.h"
 
@@ -40,6 +41,7 @@ void UInteractComponent::TickingRaycast()
 		if (!currentHitActor)
 		{
 			currentHitActor = hitResult.GetActor();
+
 			UInGameUI* ui = Cast<AFPPlayerController>(GetWorld()->GetFirstPlayerController())->inGameUI;
 			if (ui)
 			{
@@ -51,12 +53,17 @@ void UInteractComponent::TickingRaycast()
 				if (ui->pickupText)
 				{
 					APickUpActor* pickupActor = Cast<APickUpActor>(currentHitActor);
+					auto* trigger = Cast<AInteractableActorBase>(currentHitActor);
 
 					if (pickupActor)
 					{
 						FText pickupText = FText::FromString(pickupActor->GetName());
 						ui->pickupText->SetText(pickupText);
+
+						ToggleHighlight(pickupActor);
 					}
+					else if (trigger)
+						ToggleHighlight(trigger);
 				}
 			}
 		}
@@ -66,7 +73,9 @@ void UInteractComponent::TickingRaycast()
 		if (currentHitActor)
 		{
 			APickUpActor* pickupActor = Cast<APickUpActor>(currentHitActor);
+			auto* trigger = Cast<AInteractableActorBase>(currentHitActor);
 			currentHitActor = nullptr;
+
 			UInGameUI* ui = Cast<AFPPlayerController>(GetWorld()->GetFirstPlayerController())->inGameUI;
 			if (ui)
 			{
@@ -81,7 +90,11 @@ void UInteractComponent::TickingRaycast()
 					{
 						FText pickupText = FText::FromString("");
 						ui->pickupText->SetText(pickupText);
+
+						ToggleHighlight(pickupActor);
 					}
+					else if (trigger)
+						ToggleHighlight(trigger);
 				}
 			}
 		}
@@ -129,4 +142,15 @@ bool UInteractComponent::DoRaycast(OUT FHitResult& hitResult)
 	}
 
 	return false;
+}
+
+void UInteractComponent::ToggleHighlight(AActor* actor)
+{
+	for (auto* comp : actor->GetComponents())
+	{
+		auto* sm = Cast<UStaticMeshComponent>(comp);
+		if (!sm)
+			continue;
+		sm->SetRenderCustomDepth(!sm->bRenderCustomDepth);
+	}
 }
