@@ -31,11 +31,10 @@ public:
 	UCameraComponent* GetCameraComponent() const { return camera_component_; }
 	UTraverseComponent* GetTraverseComponent() { return traverse_component_; }
 
-	UFUNCTION(BlueprintCallable)
-	void EnableWatch();
-
-	UFUNCTION(BlueprintCallable)
-	void EnableTimeSphere();
+	UPROPERTY(BlueprintReadWrite)
+	bool watchEnabled;
+	UPROPERTY(BlueprintReadWrite)
+	bool timeSphereEnabled;
 
 protected:
 	void MoveForward(float value);
@@ -81,9 +80,6 @@ private:
 	FVector trace_end_;
 	float distance_ = 250.0f;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Clock")
 	bool developmentMode;
-
-	bool watchEnabled;
-	bool timeSphereEnabled;
 };
