@@ -81,11 +81,6 @@ bool UClockComponent::PickUpClock(const bool ignore_linetrace)
 	ToggleObjectsInClock(current_actors_in_clock_);
 	ToggleFrozenActors();
 
-	if (!GetWorld()->DestroyActor(clock_))
-		return false;
-
-	clock_ = nullptr;
-
 	// Clear the set of actors
 	current_actors_in_clock_.Empty();
 	actors_to_freeze_.Empty();
@@ -304,12 +299,40 @@ void UClockComponent::TimelineCB()
 	const float curve_value = curve_->GetFloatValue(timeline_position);
 
 	traverse_component_->GetTraverseShader().collection_instance_->SetScalarParameterValue(FName("Distance"), curve_value);
+	
+	if (!clock_)
+		return;
+
+	for (auto* component : clock_->GetComponents())
+	{
+		if (!component)
+			continue;
+
+		if (component->ComponentHasTag("Mesh"))
+		{
+			auto* mesh = Cast<UStaticMeshComponent>(component);
+			if(!mesh)
+				continue;
+			
+			// Yes I like magic
+			const float magic_number = 160.0f;
+			const float max_scale = curve_->GetFloatValue(timeline_.GetTimelineLength()) / magic_number;
+			const float slope = max_scale / timeline_.GetTimelineLength();
+			const float val = slope * timeline_position;
+			mesh->SetRelativeScale3D(FVector(val));
+
+			break;
+		}
+	}
 }
 
 void UClockComponent::TimelineEndCB()
 {
 	if (has_reversed_)
 	{
+		GetWorld()->DestroyActor(clock_);
+		clock_ = nullptr;
+
 		StopShader(traverse_component_->GetTraverseShader());
 		has_reversed_ = false;
 	}
