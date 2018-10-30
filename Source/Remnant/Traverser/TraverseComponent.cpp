@@ -339,7 +339,12 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 							if (actor->ActorHasTag("Past"))
 								primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
 							else if (actor->ActorHasTag("Present"))
-								primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
+							{
+								if(actor->ActorHasTag("Puzzle"))
+									primitive_comp->SetCollisionResponseToAllChannels(ECR_Ignore);
+								else 
+									primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
+							}
 
 							break;
 						}
@@ -348,7 +353,13 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 							if (actor->ActorHasTag("Present"))
 								primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
 							else if (actor->ActorHasTag("Past"))
-								primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
+							{
+								if (actor->ActorHasTag("Puzzle"))
+									primitive_comp->SetCollisionResponseToAllChannels(ECR_Ignore);
+								else
+									primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
+
+							}
 							break;
 						}
 						default:
