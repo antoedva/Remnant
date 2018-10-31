@@ -111,6 +111,8 @@ void UTraverseComponent::TraverseDimension()
 
 	// Set the current dimension to the other dimension
 	dimension_ = dimension_ == PAST ? PRESENT : PAST;
+
+	on_traverse_.Broadcast();
 }
 
 void UTraverseComponent::SpawnSphere()
