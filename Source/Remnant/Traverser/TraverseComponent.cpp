@@ -13,6 +13,7 @@
 #include "Engine/Engine.h"
 #include "Engine/LevelBounds.h"
 #include "Engine/Light.h"
+#include "Engine/DirectionalLight.h"
 #include "Engine/LevelStreamingVolume.h"
 #include "Engine/World.h"
 
@@ -110,6 +111,8 @@ void UTraverseComponent::TraverseDimension()
 
 	// Set the current dimension to the other dimension
 	dimension_ = dimension_ == PAST ? PRESENT : PAST;
+
+	on_traverse_.Broadcast();
 }
 
 void UTraverseComponent::SpawnSphere()
@@ -334,7 +337,12 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 				auto* light = Cast<ALight>(actor);
 				// If it is, flip hidden
 				if (light)
-					light->ToggleEnabled();
+				{
+					// Skip directional light as we fade those with blueprints
+					auto* dir_light = Cast<ADirectionalLight>(light);
+					if(!dir_light)
+						light->ToggleEnabled();
+				}
 
 				// If it's a sky sphere, flip hidden, this is ugly
 				else if (actor->GetName().Compare("BP_Sky_Sphere_Past") == 0 || actor->GetName().Compare("BP_Sky_Sphere_Present") == 0)
