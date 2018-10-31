@@ -29,6 +29,7 @@ public:
 	virtual void Tick(float deltaTime) override;
 
 	UCameraComponent* GetCameraComponent() const { return camera_component_; }
+	UFUNCTION(BlueprintCallable)
 	UTraverseComponent* GetTraverseComponent() { return traverse_component_; }
 
 	UPROPERTY(BlueprintReadWrite)
