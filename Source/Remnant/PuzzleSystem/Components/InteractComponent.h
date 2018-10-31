@@ -21,7 +21,7 @@ public:
 	UInteractComponent();
 
 	void TickingRaycast();
-	void AttemptInteract();
+	bool AttemptInteract();
 
 protected:
 	
@@ -38,5 +38,7 @@ private:
 	float interactRange;
 
 	UInventoryComponent* cachedInventoryComponent;
+
+	void ToggleHighlight(AActor* actor);
 
 };

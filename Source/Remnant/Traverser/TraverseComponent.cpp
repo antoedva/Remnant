@@ -25,6 +25,16 @@
 
 #include "UObject/ConstructorHelpers.h"
 
+#include "PuzzleSystem/Actors/PickUpActor.h"
+#include "PuzzleSystem/Actors/InteractableActorBase.h"
+#include "PuzzleSystem/Actors/TriggerReceiverActor.h"
+#include "PuzzleSystem/Actors/Triggers/VolumeTriggerActor.h"
+
+#include "PuzzleSystem/Components/TriggerComponent.h"
+#include "PuzzleSystem/Components/InventoryComponent.h"
+#include "PuzzleSystem/Components/InteractComponent.h"
+
+
 #define print(format, ...) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT(format), ##__VA_ARGS__), false)
 
 UTraverseComponent::UTraverseComponent(const FObjectInitializer& init)
@@ -41,60 +51,62 @@ void UTraverseComponent::TraverseDimension()
 		return;
 	}
 
-	// To be removed when all the traverse materials are done
-	if (use_old_traverse_)
+	for (auto& level : lsm_->GetAllLevels())
 	{
-		// Get all streaming levels (the ones under "Persistent Level" in the "Levels" tab)
-		for (auto& level : lsm_->GetAllLevels())
+		if (!level.Value)
+			continue;
+
+		TArray<AActor*> past_actors;
+		TArray<AActor*> present_actors;
+		TArray<AActor*> obj_actors;
+
+		switch (level.Key)
 		{
-			if (!level.Value)
-				continue;
-
-			ULevelStreaming* stream = level.Value->GetLevelStream();
-			if (!stream)
-				continue;
-
-			const TArray<AActor*> actors = stream->GetLoadedLevel()->Actors;
-
-			if (level.Key == LevelID::OBJECT)
+		case LevelID::OBJECT:
+		{
+			for (auto* stream : level.Value->GetLevelStreams())
 			{
-				// Change visibility on items depending on which dimension is current 
-				for (AActor* actor : actors)
-				{
-					if (!actor)
-						continue;
-
-					if (!actor->HasValidRootComponent())
-						continue;
-
-					ToggleObjectVisibility(actor);
-				}
+				TArray<AActor*> actors = stream->GetLoadedLevel()->Actors;
+				for (auto* actor : actors)
+					obj_actors.Add(actor);
 			}
-			else
-				stream->SetShouldBeVisible(!stream->ShouldBeVisible());
+
+			level_actor_arrays_.Add(level.Key, obj_actors);
+			break;
 		}
-	}
-	// !
-	else
-	{
-		for (auto& level : lsm_->GetAllLevels())
+		case LevelID::PRESENT:
 		{
-			if (!level.Value)
-				continue;
+			for (auto* stream : level.Value->GetLevelStreams())
+			{
+				TArray<AActor*> actors = stream->GetLoadedLevel()->Actors;
+				for (auto* actor : actors)
+					present_actors.Add(actor);;
+			}
 
-			ULevelStreaming* stream = level.Value->GetLevelStream();
-			if (!stream)
-				continue;
+			level_actor_arrays_.Add(level.Key, present_actors);
+		}
+		case LevelID::PAST:
+		{
+			for (auto* stream : level.Value->GetLevelStreams())
+			{
+				TArray<AActor*> actors = stream->GetLoadedLevel()->Actors;
+				for (auto* actor : actors)
+					past_actors.Add(actor);
+			}
 
-			level_actor_arrays_.Add(level.Key, stream->GetLoadedLevel()->Actors);
+			level_actor_arrays_.Add(level.Key, past_actors);
+			break;
+		}
+		default:
+			break;
 		}
 
-		timeline_.PlayFromStart();
-		SpawnSphere();
-		TraverseShaderStart(past_traverse_shader_);
-		TraverseShaderStart(present_traverse_shader_);
-		first_skipped_ = true;
 	}
+
+	timeline_.PlayFromStart();
+	SpawnSphere();
+	TraverseShaderStart(traverse_shader_);
+	first_skipped_ = true;
 
 	// Set the current dimension to the other dimension
 	dimension_ = dimension_ == PAST ? PRESENT : PAST;
@@ -138,99 +150,86 @@ void UTraverseComponent::BeginPlay()
 		if (!level.Value)
 			continue;
 
-		ULevelStreaming* stream = level.Value->GetLevelStream();
-		if (!stream)
+		TArray<ULevelStreaming*> streams = level.Value->GetLevelStreams();
+		if (!(streams.Num() > 0))
 			continue;
 
-		if (!stream->IsLevelLoaded())
+		for (auto* stream : streams)
 		{
-			UE_LOG(LogTemp, Error, TEXT("Level %s is not loaded! Make sure to set the streaming method to always loaded!"),
-				*FPackageName::GetShortName(stream->PackageNameToLoad.ToString()));
-			continue;
-		}
+			if (!stream->IsLevelLoaded())
+			{
+				UE_LOG(LogTemp, Error, TEXT("Level %s is not loaded! Make sure to set the streaming method to always loaded!"),
+					*FPackageName::GetShortName(stream->PackageNameToLoad.ToString()));
+				continue;
+			}
 
-		const TArray<AActor*> actors = stream->GetLoadedLevel()->Actors;
+			const TArray<AActor*> actors = stream->GetLoadedLevel()->Actors;
 
-		if (level.Key == LevelID::PAST)
-		{
-			if (use_old_traverse_)
-				stream->SetShouldBeVisible(false);
-			else
+			if (level.Key == LevelID::PAST)
 			{
 				level_bounds_ = level.Value->GetLevelBounds();
 				level_length_ = level_bounds_.GetExtent().Distance(level_bounds_.Min, level_bounds_.Max);
 
 				if (level_length_ == 0.0f)
-					UE_LOG(LogTemp, Warning, TEXT("Level length is 0! Make sure you have a level streaming volume that covers the map!"))
+					UE_LOG(LogTemp, Warning, TEXT("Level length is 0! Make sure you have a level streaming volume that covers the map!"));
 
-					for (auto* actor : actors)
-					{
-						auto* light = Cast<ALight>(actor);
-						if (light)
-						{
-							light->ToggleEnabled();
-							continue;
-						}
-						actor->SetActorEnableCollision(false);
-					}
-			}
-		}
-
-		else if (level.Key == LevelID::OBJECT)
-		{
-			for (AActor* actor : actors)
-			{
-				if (!actor)
-					continue;
-
-				// Skip redundant actors e.g. WorldSettings
-				// Actor should never not have a root component if it's important here
-				if (!actor->HasValidRootComponent())
-					continue;
-
-				// Get all components in the actor, max 2 (root, item)
-				TArray<UActorComponent*, TInlineAllocator<2>> components;
-				actor->GetComponents(components);
-
-				for (auto* component : components)
+				for (auto* actor : actors)
 				{
-					UPrimitiveComponent* primitive_comp = Cast<UPrimitiveComponent>(component);
-					if (!primitive_comp)
+					auto* light = Cast<ALight>(actor);
+					if (light)
+					{
+						light->ToggleEnabled();
+						continue;
+					}
+					actor->SetActorEnableCollision(false);
+				}
+			}
+
+			else if (level.Key == LevelID::OBJECT)
+			{
+				for (AActor* actor : actors)
+				{
+					if (!actor)
 						continue;
 
-					if (actor->ActorHasTag("Past"))
-					{
-						primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
-						if (use_old_traverse_)
-							actor->SetActorHiddenInGame(true);
-					}
+					// Skip redundant actors e.g. WorldSettings
+					// Actor should never not have a root component if it's important here
+					if (!actor->HasValidRootComponent())
+						continue;
 
-					else if (actor->ActorHasTag("Present"))
+					for (auto* component : actor->GetComponents())
 					{
-						primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
-						if (use_old_traverse_)
-							actor->SetActorHiddenInGame(false);
-					}
+						UPrimitiveComponent* primitive_comp = Cast<UPrimitiveComponent>(component);
+						if (!primitive_comp)
+							continue;
 
-					component->OnActorEnableCollisionChanged(); // I don't know if I need this
+						if (actor->ActorHasTag("Past"))
+						{
+							if (actor->IsA(APickUpActor::StaticClass()) || actor->IsA(AInteractableActorBase::StaticClass())
+								|| actor->IsA(AVolumeTriggerActor::StaticClass()) || actor->IsA(UTriggerComponent::StaticClass())
+								|| actor->IsA(UInventoryComponent::StaticClass()) || actor->IsA(UInteractComponent::StaticClass()))
+								primitive_comp->SetCollisionResponseToAllChannels(ECR_Ignore);
+							else
+								primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
+						}
+
+						else if (actor->ActorHasTag("Present"))
+							primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
+
+						component->OnActorEnableCollisionChanged(); // I don't know if I need this
+					}
 				}
 			}
 		}
 	}
 
-	if (!use_old_traverse_)
-	{
-		InitializeShaders();
-		SetupTimeline();
-	}
+	InitializeShaders();
+	SetupTimeline();
 }
 
 void UTraverseComponent::TickComponent(float delta_time, ELevelTick tick_type, FActorComponentTickFunction* this_tick_function)
 {
 	Super::TickComponent(delta_time, tick_type, this_tick_function);
-
-	if (use_old_traverse_)
-		return;
 
 	timeline_.TickTimeline(delta_time);
 
@@ -249,75 +248,23 @@ void UTraverseComponent::TickComponent(float delta_time, ELevelTick tick_type, F
 	}
 }
 
-void UTraverseComponent::ToggleObjectVisibility(AActor* actor)
-{
-	// Get all components in the actor, max 2 (root, item)
-	TArray<UActorComponent*, TInlineAllocator<2>> components;
-	actor->GetComponents(components);
-
-	// We will call SetActorHiddenInGame several times if
-	// If we have more than 1 component (excluding root), and the components have several items with the same tag
-	// That is okay as SetActorHiddenInGame() checks if the new hidden is equal to the current hidden
-	for (auto* component : components)
-	{
-		UPrimitiveComponent* primitive_comp = Cast<UPrimitiveComponent>(component);
-		if (!primitive_comp)
-			continue;
-
-		switch (dimension_)
-		{
-		case PAST:
-		{
-			if (actor->ActorHasTag("Past"))
-			{
-				primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
-				actor->SetActorHiddenInGame(true);
-			}
-			else if (actor->ActorHasTag("Present"))
-			{
-				primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
-				actor->SetActorHiddenInGame(false);
-			}
-			break;
-		}
-		case PRESENT:
-		{
-			if (actor->ActorHasTag("Past"))
-			{
-				primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
-				actor->SetActorHiddenInGame(false);
-			}
-			else if (actor->ActorHasTag("Present"))
-			{
-				primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
-				actor->SetActorHiddenInGame(true);
-			}
-			break;
-		}
-		default:
-			break;
-		}
-
-		component->OnActorEnableCollisionChanged();
-	}
-}
-
 void UTraverseComponent::InitializeShaders()
 {
-	if (!present_traverse_shader_.parameter_collection_ || !past_traverse_shader_.parameter_collection_)
+	auto* pc = traverse_shader_.parameter_collection_;
+	if (!pc)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to get collection instance! Make sure they are added to traverse shader"));
+		UE_LOG(LogTemp, Error, TEXT("Failed to get traverse shader parameter collection!"));
 		return;
 	}
 
-	present_traverse_shader_.collection_instance_ = GetWorld()->GetParameterCollectionInstance(present_traverse_shader_.parameter_collection_);
-	past_traverse_shader_.collection_instance_ = GetWorld()->GetParameterCollectionInstance(past_traverse_shader_.parameter_collection_);
+	auto* ci = GetWorld()->GetParameterCollectionInstance(pc);
+	traverse_shader_.collection_instance_ = ci;
 
 	// Change default alpha values of past shaders here so we can see whats going on when not playing the game
-	past_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Alpha 1"), 1.0f);
-	past_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Alpha 2"), 0.0f);
+	ci->SetScalarParameterValue(FName("Alpha 1"), 1.0f);
+	ci->SetScalarParameterValue(FName("Alpha 2"), 0.0f);
 
-	past_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("ToggleOpacity"), 0.0f);
+	ci->SetScalarParameterValue(FName("ToggleOpacity"), 0.0f);
 }
 
 void UTraverseComponent::TraverseShaderStart(FTraverseShader shader)
@@ -395,10 +342,7 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 
 				else if (a.Key == LevelID::OBJECT)
 				{
-					TArray<UActorComponent*, TInlineAllocator<2>> components;
-					actor->GetComponents(components);
-
-					for (auto* component : components)
+					for (auto* component : actor->GetComponents())
 					{
 						UPrimitiveComponent* primitive_comp = Cast<UPrimitiveComponent>(component);
 						if (!primitive_comp)
@@ -412,7 +356,15 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 							if (actor->ActorHasTag("Past"))
 								primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
 							else if (actor->ActorHasTag("Present"))
-								primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
+							{
+								// Do a really expensive check because tagging everything is annoying and is easy to miss
+								if (actor->IsA(APickUpActor::StaticClass()) || actor->IsA(AInteractableActorBase::StaticClass())
+								    || actor->IsA(AVolumeTriggerActor::StaticClass()) || actor->IsA(UTriggerComponent::StaticClass()) 
+									|| actor->IsA(UInventoryComponent::StaticClass()) || actor->IsA(UInteractComponent::StaticClass()))
+									primitive_comp->SetCollisionResponseToAllChannels(ECR_Ignore);
+								else
+									primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
+							}
 
 							break;
 						}
@@ -421,7 +373,16 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 							if (actor->ActorHasTag("Present"))
 								primitive_comp->SetCollisionResponseToAllChannels(ECR_Block);
 							else if (actor->ActorHasTag("Past"))
-								primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
+							{
+								// And another really expensive check
+								if (actor->IsA(APickUpActor::StaticClass()) || actor->IsA(AInteractableActorBase::StaticClass())
+									|| actor->IsA(AVolumeTriggerActor::StaticClass()) || actor->IsA(UTriggerComponent::StaticClass())
+									|| actor->IsA(UInventoryComponent::StaticClass()) || actor->IsA(UInteractComponent::StaticClass()))
+									primitive_comp->SetCollisionResponseToAllChannels(ECR_Ignore);
+								else
+									primitive_comp->SetCollisionResponseToAllChannels(ECR_Overlap);
+
+							}
 							break;
 						}
 						default:
@@ -448,15 +409,6 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 
 void UTraverseComponent::SetupTimeline()
 {
-	// Set default value here because UPROPERTY seems to mess things up :(
-	//if (timeline_length_ == 0.0f)
-		//timeline_length_ = 5.0f;
-	//curve_ = NewObject<UCurveFloat>();
-	//timeline_.SetTimelineLengthMode(TL_TimelineLength);
-	//timeline_.SetTimelineLength(timeline_length_);
-	//curve_->FloatCurve.AddKey(0.0f, 0.0f);
-	//curve_->FloatCurve.AddKey(timeline_.GetTimelineLength(), level_length_ * 0.5f);
-
 	if (!curve_)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Traverse float curve not set!"));
@@ -485,21 +437,13 @@ void UTraverseComponent::TimelineCB()
 	timeline_position_ = timeline_.GetPlaybackPosition();
 	curve_value_ = curve_->GetFloatValue(timeline_position_);
 
-	if (!past_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), curve_value_))
+	if (!traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), curve_value_))
 		UE_LOG(LogTemp, Warning, TEXT("Failed to find distance paramater"));
-
-	if (!present_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), curve_value_))
-		UE_LOG(LogTemp, Warning, TEXT("Failed to find distance paramater"));
-
-	//UpdateLevelObjects();
 }
 
 void UTraverseComponent::TimelineEndCB()
 {
-	if (!past_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), level_length_))
-		UE_LOG(LogTemp, Warning, TEXT("Failed to find distance paramater"));
-
-	if (!present_traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), level_length_))
+	if (!traverse_shader_.collection_instance_->SetScalarParameterValue(FName("Distance"), level_length_))
 		UE_LOG(LogTemp, Warning, TEXT("Failed to find distance paramater"));
 
 	ChangeActorCollision(true);

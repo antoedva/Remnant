@@ -31,12 +31,14 @@ public:
 	UCameraComponent* GetCameraComponent() const { return camera_component_; }
 	UTraverseComponent* GetTraverseComponent() { return traverse_component_; }
 
+	UPROPERTY(BlueprintReadWrite)
+	bool watchEnabled;
+	UPROPERTY(BlueprintReadWrite)
+	bool timeSphereEnabled;
+
 protected:
 	void MoveForward(float value);
 	void MoveRight(float value);
-	void CharacterCrouch();
-	void CharacterUnCrouch();
-	void CharacterCrouchToggle();
 	void TraverseDimension();
 	void PlaceClock();
 	void PickupClock();
@@ -56,15 +58,28 @@ private:
 	UInventoryComponent* inventoryComponent;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Clock")
-	float clock_cooldown_ = 10.0f;
+	float clock_timer_ = 10.0f;
 	FTimerHandle clock_timer_handle_;
 	UFUNCTION()
 	void ClockTimerEndCB() { PickupClock(); }
 	
 	bool traverse_allowed_ = true;
 	UPROPERTY(EditInstanceOnly, Category = "Traverse")
-	float traverse_cooldown_ = 3.0f;
+	float traverse_cooldown_ = 5.0f;
 	FTimerHandle traverse_timer_handle_;
 	UFUNCTION()
 	void TraverseTimerEndCB() { traverse_allowed_ = true; }
+
+	// Move this later on, just temporary stuff
+protected:
+	void LiftObject();
+	void ReleaseObject();
+private:
+	AActor* actor_to_lift_;
+	FVector trace_start_;
+	FVector trace_end_;
+	float distance_ = 250.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Clock")
+	bool developmentMode;
 };
