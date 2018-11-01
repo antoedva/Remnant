@@ -20,6 +20,9 @@ public:
 	bool TriggerThisReceiver(int channel);
 	bool TriggerThisReceiverReverse(int channel);
 
+	UFUNCTION(BlueprintCallable, Category = "Receivers")
+	bool TriggerAnotherReceiver(int channel, ATriggerReceiverActor* other_receiver);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Triggers")
 	UReceiverTargets* targets_;
 
