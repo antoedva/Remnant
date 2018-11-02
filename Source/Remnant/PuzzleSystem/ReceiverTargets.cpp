@@ -27,6 +27,8 @@ AActor* UReceiverTargets::GetCurrentNode()
 
 void UReceiverTargets::BeginPlay()
 {
+	Super::BeginPlay();
+
 	if (!(receiver_targets_.Num() > 0))
 		return;
 
