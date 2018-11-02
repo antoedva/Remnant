@@ -4,6 +4,7 @@
 #include "UI/InGameUI.h"
 #include "FPPlayerController.h"
 #include "Components/Image.h"
+#include "Styling/SlateBrush.h"
 
 UInventoryComponent::UInventoryComponent()
 {
@@ -15,9 +16,11 @@ void UInventoryComponent::BeginPlay()
 	Super::BeginPlay();
 }
 
-bool UInventoryComponent::HasItem(FString itemName)
+bool UInventoryComponent::HasItem(const FString& itemName)
 {
-	if (item && item->GetName() == itemName)
+	if (!item)
+		return false;
+	if (item->GetName().Compare(itemName) == 0)
 	{
 		return true;
 	}
@@ -27,7 +30,7 @@ bool UInventoryComponent::HasItem(FString itemName)
 
 bool UInventoryComponent::HasItem(APickUpActor* pickUp)
 {
-	if (item && pickUp == item)
+	if (item == pickUp)
 	{
 		return true;
 	}
@@ -37,12 +40,13 @@ bool UInventoryComponent::HasItem(APickUpActor* pickUp)
 
 void UInventoryComponent::AddItem(APickUpActor* pickUp)
 {
-	item = pickUp;
+	memcpy(&item, &pickUp, sizeof(pickUp));
 }
 
 void UInventoryComponent::ResetInventory()
 {
-	item = nullptr;
+	item->Destroy();
+
 	UInGameUI* ui = Cast<AFPPlayerController>(GetWorld()->GetFirstPlayerController())->inGameUI;
 	ui->inventoryImage->SetVisibility(ESlateVisibility::Hidden);
 }
