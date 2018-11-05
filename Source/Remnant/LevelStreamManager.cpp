@@ -7,7 +7,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "Misc/PackageName.h"
 
-
 ALevelStreamManager::ALevelStreamManager()
 {
 }
@@ -81,6 +80,10 @@ bool ALevelStreamManager::LoadAllLevels()
 			past_streams.Add(level_stream);
 		else if (level_name.Compare("Level_01_Present") == 0 || level_name.Compare("Level_02_Present") == 0 || level_name.Compare("Level_03_Present") == 0 || level_name.Compare("Level_04_Present") == 0)
 			present_streams.Add(level_stream);
+
+		// Add other levels to obj
+		else
+			obj_streams.Add(level_stream);
 	}
 
 	CreateLevel(past_streams, LevelID::PAST);
