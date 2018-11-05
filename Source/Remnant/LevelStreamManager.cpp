@@ -74,14 +74,12 @@ bool ALevelStreamManager::LoadAllLevels()
 		const FString level_name = FPackageName::GetShortName(GetWorld()->IsPlayInEditor() ?
 			level_stream->PackageNameToLoad.ToString() : level_stream->GetWorldAssetPackageName());
 
-		if (level_name.Compare("ObjectLevel") == 0 || level_name.Compare("ObjectLevel_Room02") == 0 || level_name.Compare("Level_04_Puzzle_B") == 0)
-			obj_streams.Add(level_stream);
-		else if (level_name.Compare("Level_01_Past") == 0 || level_name.Compare("Level_02_Past") == 0 || level_name.Compare("Level_03_Past") == 0 || level_name.Compare("Level_04_Past") == 0)
+		if (level_name.Compare("Level_01_Past") == 0 || level_name.Compare("Level_02_Past") == 0 || level_name.Compare("Level_03_Past") == 0 || level_name.Compare("Level_04_Past") == 0)
 			past_streams.Add(level_stream);
 		else if (level_name.Compare("Level_01_Present") == 0 || level_name.Compare("Level_02_Present") == 0 || level_name.Compare("Level_03_Present") == 0 || level_name.Compare("Level_04_Present") == 0)
 			present_streams.Add(level_stream);
 
-		// Add other levels to obj
+		// add everything else to object streams
 		else
 			obj_streams.Add(level_stream);
 	}
