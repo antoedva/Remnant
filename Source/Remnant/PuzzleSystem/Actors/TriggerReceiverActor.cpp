@@ -17,7 +17,6 @@ ATriggerReceiverActor::~ATriggerReceiverActor()
 void ATriggerReceiverActor::BeginPlay()
 {
 	Super::BeginPlay();
-	blueprintLink->RegisterComponent();
 }
 
 bool ATriggerReceiverActor::TriggerThisReceiver(int channel)
