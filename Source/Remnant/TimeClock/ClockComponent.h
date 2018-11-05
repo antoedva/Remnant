@@ -12,6 +12,7 @@
 class UStaticMeshComponent;
 class AFP_Character;
 class UTraverseComponent;
+class UParticleSystem;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class REMNANT_API UClockComponent : public UActorComponent
@@ -34,6 +35,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Clock")
 	TSubclassOf<AActor> base_item_;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Particles")
+	UParticleSystem* beam_particle_;
 
 	AFP_Character* player_;
 	AActor* clock_;
