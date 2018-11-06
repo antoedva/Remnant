@@ -8,6 +8,7 @@
 #include "Curves/CurveFloat.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/BoxComponent.h"
 #include "Containers/ContainerAllocationPolicies.h"
 
 #include "Engine/Engine.h"
@@ -34,6 +35,8 @@
 #include "PuzzleSystem/Components/TriggerComponent.h"
 #include "PuzzleSystem/Components/InventoryComponent.h"
 #include "PuzzleSystem/Components/InteractComponent.h"
+
+#include "Engine/ReflectionCapture.h"
 
 
 #define print(format, ...) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT(format), ##__VA_ARGS__), false)
@@ -206,6 +209,9 @@ void UTraverseComponent::BeginPlay()
 						if (!primitive_comp)
 							continue;
 
+						if (component->IsA(UBoxComponent::StaticClass()))
+							continue;
+
 						if (actor->ActorHasTag("Past"))
 						{
 							if (actor->IsA(APickUpActor::StaticClass()) || actor->IsA(AInteractableActorBase::StaticClass())
@@ -348,12 +354,18 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 				else if (actor->GetName().Compare("BP_Sky_Sphere_Past") == 0 || actor->GetName().Compare("BP_Sky_Sphere_Present") == 0)
 					actor->SetActorHiddenInGame(!actor->bHidden);
 
+				//auto* rc = Cast<AReflectionCapture>(actor);
+				//rc->GetCaptureComponent(;
+
 				else if (a.Key == LevelID::OBJECT)
 				{
 					for (auto* component : actor->GetComponents())
 					{
 						UPrimitiveComponent* primitive_comp = Cast<UPrimitiveComponent>(component);
 						if (!primitive_comp)
+							continue;
+
+						if(component->IsA(UBoxComponent::StaticClass()))
 							continue;
 
 						// For some reason, I can't just do a simple block ? overlap : block, because the getter for the collisionresponse is stupid, oh well

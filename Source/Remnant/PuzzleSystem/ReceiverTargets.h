@@ -25,6 +25,8 @@ public:
 	int32 GetCurrentID() const { return current_id_; }
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Receiver")
 	int32 GetNumNodes() const { return num_nodes_; }
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Receiver")
+	AActor* GetNodeAtID(const int id) { return receiver_targets_[id]; }
 
 protected:
 	void BeginPlay() override;
