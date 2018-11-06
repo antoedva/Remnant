@@ -15,7 +15,7 @@ public:
 
 	UInventoryComponent();
 
-	bool HasItem(FString itemName);
+	bool HasItem(const FString& itemName);
 	bool HasItem(APickUpActor* pickUp);
 	void AddItem(APickUpActor* pickUp);
 	void ResetInventory();
