@@ -46,13 +46,13 @@ bool UClockComponent::ThrowClock()
 	if (!GetSpawnLocation(spawn_location_))
 		return false;
 
-	if (beam_particle_)
-	{
-		UParticleSystemComponent* psc = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), beam_particle_, GetOwner()->GetActorLocation(), FRotator(),  true, EPSCPoolMethod::AutoRelease);
-		psc->SetBeamSourcePoint(0, GetOwner()->GetActorLocation(), 0);
-		psc->SetBeamTargetPoint(0, spawn_location_, 0);
-		psc->Activate(true);
-	}
+	//if (beam_particle_)
+	//{
+	//	UParticleSystemComponent* psc = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), beam_particle_, GetOwner()->GetActorLocation(), FRotator(),  true, EPSCPoolMethod::AutoRelease);
+	//	psc->SetBeamSourcePoint(0, GetOwner()->GetActorLocation(), 0);
+	//	psc->SetBeamTargetPoint(0, spawn_location_, 0);
+	//	psc->Activate(true);
+	//}
 
 	clock_ = GetWorld()->SpawnActor<AActor>(clock_bp_, spawn_location_, FRotator(0.0f));
 
