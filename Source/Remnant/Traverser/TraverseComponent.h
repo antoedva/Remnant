@@ -15,6 +15,8 @@ class UMaterialParameterCollection;
 class UMaterialParameterCollectionInstance;
 class USphereComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTraverse);
+
 USTRUCT()
 struct REMNANT_API FTraverseShader
 {
@@ -30,7 +32,7 @@ struct REMNANT_API FTraverseShader
 	{}
 };
 
-UCLASS()
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class REMNANT_API UTraverseComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -70,6 +72,9 @@ private:
 
 	AActor* sphere_;
 	void SpawnSphere();
+
+	UPROPERTY(BlueprintAssignable)
+	FOnTraverse on_traverse_;
 
 private:
 	TMap<LevelID, TArray<AActor*>> level_actor_arrays_;

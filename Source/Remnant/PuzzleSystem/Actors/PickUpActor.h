@@ -19,8 +19,10 @@ public:
 
 	APickUpActor();
 
-	FString GetName() { return itemName; }
+	UFUNCTION()
+	FString& GetName() { return itemName; }
 	void InteractWith(UInventoryComponent* inventory) override;
+	FSlateBrush GetBrush() const { return brush; }
 
 protected:
 

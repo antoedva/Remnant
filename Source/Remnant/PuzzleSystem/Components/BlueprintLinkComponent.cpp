@@ -1,5 +1,6 @@
 #include "BlueprintLinkComponent.h"
 #include "../TriggerBroadcastChannel.h"
+#include "../Actors/TriggerReceiverActor.h"
 
 UBlueprintLinkComponent::UBlueprintLinkComponent()
 {
@@ -34,9 +35,14 @@ void UBlueprintLinkComponent::BroadcastToBlueprintReverse(int channel)
 	for (unsigned i = 0; i < static_cast<int>(ETriggerBroadcastChannel::ALL); ++i)
 	{
 		// Skip freeze channels
-		if(i == static_cast<int>(ETriggerBroadcastChannel::CHANNEL_ELEVEN) || i == static_cast<int>(ETriggerBroadcastChannel::CHANNEL_TEN))
+		if (i == static_cast<int>(ETriggerBroadcastChannel::CHANNEL_ELEVEN) || i == static_cast<int>(ETriggerBroadcastChannel::CHANNEL_TEN))
 			continue;
 
 		onTriggerReverse.Broadcast(i);
 	}
+}
+
+void UBlueprintLinkComponent::BroadcastToReceiver(ATriggerReceiverActor* receiver, int channel)
+{
+	on_another_receiver_triggered_.Broadcast(receiver, channel);
 }

@@ -29,6 +29,7 @@ public:
 	virtual void Tick(float deltaTime) override;
 
 	UCameraComponent* GetCameraComponent() const { return camera_component_; }
+	UFUNCTION(BlueprintCallable)
 	UTraverseComponent* GetTraverseComponent() { return traverse_component_; }
 
 	UPROPERTY(BlueprintReadWrite)
@@ -64,8 +65,8 @@ private:
 	void ClockTimerEndCB() { PickupClock(); }
 	
 	bool traverse_allowed_ = true;
-	UPROPERTY(EditInstanceOnly, Category = "Traverse")
-	float traverse_cooldown_ = 5.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Traverse")
+	float traverse_cooldown_ = 2.0f;
 	FTimerHandle traverse_timer_handle_;
 	UFUNCTION()
 	void TraverseTimerEndCB() { traverse_allowed_ = true; }
