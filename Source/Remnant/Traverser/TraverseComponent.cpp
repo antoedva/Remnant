@@ -182,9 +182,10 @@ void UTraverseComponent::BeginPlay()
 					auto* light = Cast<ALight>(actor);
 					if (light)
 					{
-						light->ToggleEnabled();
-						continue;
+						if(!light->IsA(ADirectionalLight::StaticClass()))
+							light->ToggleEnabled();
 					}
+
 					actor->SetActorEnableCollision(false);
 				}
 			}
@@ -343,8 +344,7 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 				if (light)
 				{
 					// Skip directional light as we fade those with blueprints
-					auto* dir_light = Cast<ADirectionalLight>(light);
-					if(!dir_light)
+					if(!light->IsA(ADirectionalLight::StaticClass()))
 						light->ToggleEnabled();
 				}
 
