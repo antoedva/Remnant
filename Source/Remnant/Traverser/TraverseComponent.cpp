@@ -8,6 +8,7 @@
 #include "Curves/CurveFloat.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/BoxComponent.h"
 #include "Containers/ContainerAllocationPolicies.h"
 
 #include "Engine/Engine.h"
@@ -181,9 +182,10 @@ void UTraverseComponent::BeginPlay()
 					auto* light = Cast<ALight>(actor);
 					if (light)
 					{
-						light->ToggleEnabled();
-						continue;
+						if(!light->IsA(ADirectionalLight::StaticClass()))
+							light->ToggleEnabled();
 					}
+
 					actor->SetActorEnableCollision(false);
 				}
 			}
@@ -204,6 +206,9 @@ void UTraverseComponent::BeginPlay()
 					{
 						UPrimitiveComponent* primitive_comp = Cast<UPrimitiveComponent>(component);
 						if (!primitive_comp)
+							continue;
+
+						if (component->IsA(UBoxComponent::StaticClass()))
 							continue;
 
 						if (actor->ActorHasTag("Past"))
@@ -339,8 +344,7 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 				if (light)
 				{
 					// Skip directional light as we fade those with blueprints
-					auto* dir_light = Cast<ADirectionalLight>(light);
-					if(!dir_light)
+					if(!light->IsA(ADirectionalLight::StaticClass()))
 						light->ToggleEnabled();
 				}
 
@@ -354,6 +358,9 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 					{
 						UPrimitiveComponent* primitive_comp = Cast<UPrimitiveComponent>(component);
 						if (!primitive_comp)
+							continue;
+
+						if(component->IsA(UBoxComponent::StaticClass()))
 							continue;
 
 						// For some reason, I can't just do a simple block ? overlap : block, because the getter for the collisionresponse is stupid, oh well
