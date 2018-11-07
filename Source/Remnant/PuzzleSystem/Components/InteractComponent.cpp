@@ -11,6 +11,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "FPPlayerController.h"
 #include "PuzzleSystem/Actors/PickUpActor.h"
+#include "PuzzleSystem/Actors/TriggerReceiverActor.h"
 
 UInteractComponent::UInteractComponent()
 {
@@ -38,6 +39,9 @@ void UInteractComponent::TickingRaycast()
 
 	if (didRaycastHit)
 	{
+		if (hitResult.GetActor()->IsA(ATriggerReceiverActor::StaticClass()))
+			return;
+
 		if (!currentHitActor)
 		{
 			currentHitActor = hitResult.GetActor();
