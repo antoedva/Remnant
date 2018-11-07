@@ -35,7 +35,7 @@ private:
 	AActor* currentHitActor;
 
 	UPROPERTY(EditAnywhere)
-	float interactRange;
+	float interactRange = 300.0f;
 
 	UInventoryComponent* cachedInventoryComponent;
 
