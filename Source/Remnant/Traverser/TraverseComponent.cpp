@@ -36,8 +36,6 @@
 #include "PuzzleSystem/Components/InventoryComponent.h"
 #include "PuzzleSystem/Components/InteractComponent.h"
 
-#include "Engine/ReflectionCapture.h"
-
 
 #define print(format, ...) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT(format), ##__VA_ARGS__), false)
 
@@ -184,9 +182,10 @@ void UTraverseComponent::BeginPlay()
 					auto* light = Cast<ALight>(actor);
 					if (light)
 					{
-						light->ToggleEnabled();
-						continue;
+						if(!light->IsA(ADirectionalLight::StaticClass()))
+							light->ToggleEnabled();
 					}
+
 					actor->SetActorEnableCollision(false);
 				}
 			}
@@ -345,17 +344,13 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 				if (light)
 				{
 					// Skip directional light as we fade those with blueprints
-					auto* dir_light = Cast<ADirectionalLight>(light);
-					if(!dir_light)
+					if(!light->IsA(ADirectionalLight::StaticClass()))
 						light->ToggleEnabled();
 				}
 
 				// If it's a sky sphere, flip hidden, this is ugly
 				else if (actor->GetName().Compare("BP_Sky_Sphere_Past") == 0 || actor->GetName().Compare("BP_Sky_Sphere_Present") == 0)
 					actor->SetActorHiddenInGame(!actor->bHidden);
-
-				//auto* rc = Cast<AReflectionCapture>(actor);
-				//rc->GetCaptureComponent(;
 
 				else if (a.Key == LevelID::OBJECT)
 				{
