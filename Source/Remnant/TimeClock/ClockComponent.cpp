@@ -117,6 +117,10 @@ void UClockComponent::BeginPlay()
 
 	SetupClock();
 	SetupTimeline();
+
+	auto* ci = traverse_component_->GetTraverseShader().collection_instance_;
+	if (ci)
+		ci->GetScalarParameterValue(FName("Outline Width"), outline_width_);
 }
 
 void UClockComponent::TickComponent(float delta_time, ELevelTick tick_type, FActorComponentTickFunction* this_tick_function)
@@ -218,6 +222,7 @@ bool UClockComponent::StartShader(FTraverseShader shader)
 	}
 
 	ci->GetScalarParameterValue(FName("Distance"), last_distance_);
+	ci->SetScalarParameterValue(FName("Outline Width"), outline_width_ * 0.5f);
 
 	return true;
 }
@@ -232,6 +237,7 @@ bool UClockComponent::StopShader(FTraverseShader shader)
 	}
 
 	ci->SetScalarParameterValue(FName("Distance"), last_distance_);
+	ci->SetScalarParameterValue(FName("Outline Width"), outline_width_);
 
 	if (traverse_component_->GetFirstSkipped())
 	{
