@@ -23,20 +23,20 @@ public:
 	UFUNCTION()
 	void OnOverlapEnd(AActor* overlappedActor, AActor* otherActor);
 
-	UFUNCTION(BlueprintCallable, Category = "Volume Trigger")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Volume Trigger")
 	bool IsActorInsideVolume() { return isActorInsideVolume; }
 
 protected:
 
 	void BeginPlay() override;
 
-private:
-
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UTriggerComponent* triggerComponent;
-
+private:
 	UPROPERTY(Category = "Volume Trigger Actor", EditAnywhere)
 	TArray<AActor*> actorsThatTriggers; // Pointer to the actor that has the ability to trigger this volume. Will most likely be the player in most instances.
 
 	bool isActorInsideVolume;
+
+	unsigned amount_of_actors_inside_;
 };

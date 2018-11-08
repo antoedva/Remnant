@@ -23,11 +23,20 @@ public:
 
 	void TriggerAllReceivers();
 	void TriggerAllReceiversReverse();
+	UFUNCTION(BlueprintCallable, Category = "Trigger")
+	void TriggerReceiver(ATriggerReceiverActor* receiver);
+	UFUNCTION(BlueprintCallable, Category = "Trigger")
+	void ForceTriggerReceiver(ATriggerReceiverActor* receiver, const int channel);
+
+	UFUNCTION(BlueprintCallable, Category = "Channel")
+	void SetBroadcastChannel(const int channel) { broadcastChannel = static_cast<ETriggerBroadcastChannel>(channel); }
 
 protected:
 
 	virtual void BeginPlay() override;
 
+	UPROPERTY(Category = "Volume Trigger Actor", EditAnywhere, BlueprintReadOnly)
+	TArray<ATriggerReceiverActor*> triggerReceivers;
 private:
 	
 	UPROPERTY(BlueprintAssignable)
@@ -35,9 +44,6 @@ private:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnTriggerReceiversReverse onTriggerReverse;
-
-	UPROPERTY(Category = "Volume Trigger Actor", EditAnywhere)
-	TArray<ATriggerReceiverActor*> triggerReceivers;
 
 	UPROPERTY(EditAnywhere)
 	ETriggerBroadcastChannel broadcastChannel;
