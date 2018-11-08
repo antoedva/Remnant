@@ -76,3 +76,10 @@ Remnant/Intermediate/Build/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+Content/Levels/03_Corridor/Lights_past.umap
+Content/Levels/02_Study/test.umap
+Content/Levels/02_Study/light_Past.umap
+Content/Levels/02_Study/Temp_Corner.umap
+Content/Levels/02_Study/Level_02_Workingscene_temp.umap
+Content/Levels/03_Corridor/Lights_present.umap
+Content/Levels/02_Study/temp_LightBaking.umap
