@@ -54,6 +54,7 @@ private:
 	bool StartShader(FTraverseShader shader);
 	bool StopShader(FTraverseShader shader);
 	float last_distance_;
+	float outline_width_;
 
 	TSet<AActor*> current_actors_in_clock_;
 	void ToggleObjectsInClock(TSet<AActor*> actor_set);

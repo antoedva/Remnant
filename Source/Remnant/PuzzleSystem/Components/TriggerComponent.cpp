@@ -49,3 +49,33 @@ void UTriggerComponent::TriggerAllReceiversReverse()
 
 	onTriggerReverse.Broadcast();
 }
+
+void UTriggerComponent::TriggerReceiver(ATriggerReceiverActor* receiver)
+{
+	if (!receiver)
+		return;
+
+	const bool result = receiver->TriggerThisReceiver(static_cast<int>(broadcastChannel));
+	if (!result)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to trigger this receiver in VolumeTriggerActor."));
+		return;
+	}
+
+	onTrigger.Broadcast();
+}
+
+void UTriggerComponent::ForceTriggerReceiver(ATriggerReceiverActor* receiver, const int channel)
+{
+	if (!receiver)
+		return;
+
+	const bool result = receiver->TriggerThisReceiver(channel);
+	if (!result)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to trigger this receiver in VolumeTriggerActor."));
+		return;
+	}
+
+	onTrigger.Broadcast();
+}

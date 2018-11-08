@@ -37,6 +37,8 @@ void AVolumeTriggerActor::OnOverlapBegin(AActor* overlappedActor, AActor* otherA
 		{
 			if (otherActor && otherActor == actor)
 			{
+				amount_of_actors_inside_++;
+
 				isActorInsideVolume = true;
 				triggerComponent->TriggerAllReceivers();
 			}
@@ -52,6 +54,12 @@ void AVolumeTriggerActor::OnOverlapEnd(AActor* overlappedActor, AActor* otherAct
 		{
 			if (otherActor && otherActor == actor)
 			{
+				amount_of_actors_inside_--;
+
+				// We don't want to do anything if an object is still inside
+				if (amount_of_actors_inside_ > 0)
+					return;
+
 				isActorInsideVolume = false;
 				triggerComponent->TriggerAllReceiversReverse();
 			}
