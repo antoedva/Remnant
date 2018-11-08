@@ -291,6 +291,8 @@ void UClockComponent::ToggleFrozenActors()
 		// Trigger channel 10 or 11 based on whether whether we want to freeze or unfreeze it
 		trigger_actor->TriggerThisReceiver(static_cast<int>(
 			trigger_actor->GetIsFrozen() ? ETriggerBroadcastChannel::CHANNEL_ELEVEN : ETriggerBroadcastChannel::CHANNEL_TEN));
+		trigger_actor->TriggerThisReceiverReverse(static_cast<int>(
+			trigger_actor->GetIsFrozen() ? ETriggerBroadcastChannel::CHANNEL_ELEVEN : ETriggerBroadcastChannel::CHANNEL_TEN));
 		trigger_actor->SetFrozen(!trigger_actor->GetIsFrozen());
 	}
 	ToggleObjectsInClock(actors_to_freeze_);

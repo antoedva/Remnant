@@ -36,6 +36,7 @@
 #include "PuzzleSystem/Components/InventoryComponent.h"
 #include "PuzzleSystem/Components/InteractComponent.h"
 
+#include "GameFramework/Info.h"
 
 #define print(format, ...) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::White, FString::Printf(TEXT(format), ##__VA_ARGS__), false)
 
@@ -344,9 +345,13 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 				if (light)
 				{
 					// Skip directional light as we fade those with blueprints
-					if(!light->IsA(ADirectionalLight::StaticClass()))
+					if (!light->IsA(ADirectionalLight::StaticClass()))
 						light->ToggleEnabled();
 				}
+
+				// Toggle fog
+				//else if (actor->IsA(AInfo::StaticClass()))
+					//actor->SetActorHiddenInGame(!actor->bHidden);
 
 				// If it's a sky sphere, flip hidden, this is ugly
 				else if (actor->GetName().Compare("BP_Sky_Sphere_Past") == 0 || actor->GetName().Compare("BP_Sky_Sphere_Present") == 0)
