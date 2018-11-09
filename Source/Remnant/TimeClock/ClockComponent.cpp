@@ -46,14 +46,6 @@ bool UClockComponent::ThrowClock()
 	if (!GetSpawnLocation(spawn_location_))
 		return false;
 
-	//if (beam_particle_)
-	//{
-	//	UParticleSystemComponent* psc = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), beam_particle_, GetOwner()->GetActorLocation(), FRotator(),  true, EPSCPoolMethod::AutoRelease);
-	//	psc->SetBeamSourcePoint(0, GetOwner()->GetActorLocation(), 0);
-	//	psc->SetBeamTargetPoint(0, spawn_location_, 0);
-	//	psc->Activate(true);
-	//}
-
 	clock_ = GetWorld()->SpawnActor<AActor>(clock_bp_, spawn_location_, FRotator(0.0f));
 
 	// Save our overlapped actors so we know what to remove later on
@@ -118,9 +110,17 @@ void UClockComponent::BeginPlay()
 	SetupClock();
 	SetupTimeline();
 
-	auto* ci = traverse_component_->GetTraverseShader().collection_instance_;
-	if (ci)
-		ci->GetScalarParameterValue(FName("Outline Width"), outline_width_);
+	if (parameter_collection_)
+	{
+		collection_instance_ = GetWorld()->GetParameterCollectionInstance(parameter_collection_);
+		if (!collection_instance_)
+			return;
+
+		if (!collection_instance_->GetScalarParameterValue(FName("Outline Width"), outline_width_))
+			UE_LOG(LogTemp, Error, TEXT("Failed to get Outline Width in Outline_Parameters!"));
+		if (!collection_instance_->GetScalarParameterValue(FName("Exponent"), outline_strength_))
+			UE_LOG(LogTemp, Error, TEXT("Failed to get Exponent in Outline_Parameters!"));
+	}
 }
 
 void UClockComponent::TickComponent(float delta_time, ELevelTick tick_type, FActorComponentTickFunction* this_tick_function)
@@ -222,7 +222,8 @@ bool UClockComponent::StartShader(FTraverseShader shader)
 	}
 
 	ci->GetScalarParameterValue(FName("Distance"), last_distance_);
-	ci->SetScalarParameterValue(FName("Outline Width"), outline_width_ * 0.5f);
+	collection_instance_->SetScalarParameterValue(FName("Outline Width"), outline_width_ * 0.5f);
+	collection_instance_->SetScalarParameterValue(FName("Exponent"), outline_strength_ * 0.7f);
 
 	return true;
 }
@@ -237,7 +238,8 @@ bool UClockComponent::StopShader(FTraverseShader shader)
 	}
 
 	ci->SetScalarParameterValue(FName("Distance"), last_distance_);
-	ci->SetScalarParameterValue(FName("Outline Width"), outline_width_);
+	collection_instance_->SetScalarParameterValue(FName("Outline Width"), outline_width_);
+	collection_instance_->SetScalarParameterValue(FName("Exponent"), outline_strength_);
 
 	if (traverse_component_->GetFirstSkipped())
 	{
@@ -284,24 +286,37 @@ bool UClockComponent::GetOverlappingActors(TSet<AActor*>& out_actors, TSubclassO
 
 void UClockComponent::ToggleFrozenActors()
 {
+	TArray<AActor*> remove;
 	for (auto* actor : actors_to_freeze_)
 	{
 		if (!actor)
 			continue;
 
-		auto* trigger_actor = Cast<ATriggerReceiverActor>(actor);
+		auto* receiver = Cast<ATriggerReceiverActor>(actor);
 
-		if (!trigger_actor)
+		if (!receiver)
+		{
+			remove.Add(receiver);
 			continue;
+		}
 
 		// Trigger channel 10 or 11 based on whether whether we want to freeze or unfreeze it
-		trigger_actor->TriggerThisReceiver(static_cast<int>(
-			trigger_actor->GetIsFrozen() ? ETriggerBroadcastChannel::CHANNEL_ELEVEN : ETriggerBroadcastChannel::CHANNEL_TEN));
-		trigger_actor->TriggerThisReceiverReverse(static_cast<int>(
-			trigger_actor->GetIsFrozen() ? ETriggerBroadcastChannel::CHANNEL_ELEVEN : ETriggerBroadcastChannel::CHANNEL_TEN));
-		trigger_actor->SetFrozen(!trigger_actor->GetIsFrozen());
+		receiver->TriggerThisReceiver(static_cast<int>(
+			receiver->GetIsFrozen() ? ETriggerBroadcastChannel::CHANNEL_ELEVEN : ETriggerBroadcastChannel::CHANNEL_TEN));
+		receiver->TriggerThisReceiverReverse(static_cast<int>(
+			receiver->GetIsFrozen() ? ETriggerBroadcastChannel::CHANNEL_ELEVEN : ETriggerBroadcastChannel::CHANNEL_TEN));
+		receiver->SetFrozen(!receiver->GetIsFrozen());
 	}
-	//ToggleObjectsInClock(actors_to_freeze_);
+
+	// Remove unwanted actors
+	for (auto* actor : remove)
+	{
+		if (actors_to_freeze_.Contains(actor))
+			actors_to_freeze_.Remove(actor);
+	}
+	remove.Empty();
+
+	ToggleObjectsInClock(actors_to_freeze_);
 }
 
 void UClockComponent::SetupTimeline()
