@@ -301,7 +301,7 @@ void UClockComponent::ToggleFrozenActors()
 			trigger_actor->GetIsFrozen() ? ETriggerBroadcastChannel::CHANNEL_ELEVEN : ETriggerBroadcastChannel::CHANNEL_TEN));
 		trigger_actor->SetFrozen(!trigger_actor->GetIsFrozen());
 	}
-	ToggleObjectsInClock(actors_to_freeze_);
+	//ToggleObjectsInClock(actors_to_freeze_);
 }
 
 void UClockComponent::SetupTimeline()
