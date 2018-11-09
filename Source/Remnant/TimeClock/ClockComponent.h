@@ -13,6 +13,8 @@ class UStaticMeshComponent;
 class AFP_Character;
 class UTraverseComponent;
 class UParticleSystem;
+class UMaterialParameterCollection;
+class UMaterialParameterCollectionInstance;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class REMNANT_API UClockComponent : public UActorComponent
@@ -36,8 +38,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Clock")
 	TSubclassOf<AActor> base_item_;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Particles")
-	UParticleSystem* beam_particle_;
+	UPROPERTY(EditDefaultsOnly)
+	UMaterialParameterCollection* parameter_collection_;
+	UMaterialParameterCollectionInstance* collection_instance_;
 
 	AFP_Character* player_;
 	AActor* clock_;
@@ -55,6 +58,7 @@ private:
 	bool StopShader(FTraverseShader shader);
 	float last_distance_;
 	float outline_width_;
+	float outline_strength_;
 
 	TSet<AActor*> current_actors_in_clock_;
 	void ToggleObjectsInClock(TSet<AActor*> actor_set);
