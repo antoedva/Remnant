@@ -45,9 +45,9 @@ protected:
 	void PickupClock();
 	void Interact();
 
-private:
-	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera")
 	UCameraComponent* camera_component_;
+private:
 	UCharacterMovementComponent* movement_component_;
 	UPROPERTY(EditDefaultsOnly, Category = "Traverse")
 	UTraverseComponent* traverse_component_;
