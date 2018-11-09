@@ -28,7 +28,6 @@
 UClockComponent::UClockComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-
 }
 
 bool UClockComponent::ThrowClock()
@@ -51,6 +50,7 @@ bool UClockComponent::ThrowClock()
 	// Save our overlapped actors so we know what to remove later on
 	GetOverlappingActors(current_actors_in_clock_, base_item_);
 	GetOverlappingActors(actors_to_freeze_);
+	GetOverlappingActors(tagged_actors_, nullptr, FName("Special Snowflake"));
 
 	ToggleObjectsInClock(current_actors_in_clock_);
 	ToggleFrozenActors();
@@ -84,10 +84,12 @@ bool UClockComponent::PickUpClock(const bool ignore_linetrace)
 
 	ToggleObjectsInClock(current_actors_in_clock_);
 	ToggleFrozenActors();
+	ResetTaggedActors();
 
 	// Clear the set of actors
 	current_actors_in_clock_.Empty();
 	actors_to_freeze_.Empty();
+	tagged_actors_.Empty();
 
 	timeline_.Reverse();
 	has_reversed_ = true;
@@ -129,6 +131,127 @@ void UClockComponent::TickComponent(float delta_time, ELevelTick tick_type, FAct
 
 	timeline_.TickTimeline(delta_time);
 
+	if (clock_)
+	{
+		if (!player_)
+			return;
+		if (!(tagged_actors_.Num() > 0))
+			return;
+		SwapTaggedActors();
+	}
+}
+
+void UClockComponent::ResetTaggedActors()
+{
+	// REMINDER: THIS FUNCTION IS UGLY!!
+	for (auto* actor : tagged_actors_)
+	{
+		switch (traverse_component_->GetCurrentDimension())
+		{
+		case UTraverseComponent::PAST:
+		{
+			if (actor->ActorHasTag(FName("Past")))
+			{
+				for (auto* component : actor->GetComponents())
+				{
+					auto* prim = Cast<UPrimitiveComponent>(component);
+					if (!prim)
+						continue;
+
+					prim->SetCollisionResponseToAllChannels(ECR_Block);
+				}
+			}
+			else
+			{
+				for (auto* component : actor->GetComponents())
+				{
+					auto* prim = Cast<UPrimitiveComponent>(component);
+					if (!prim)
+						continue;
+
+					prim->SetCollisionResponseToAllChannels(ECR_Overlap);
+				}
+			}
+		}
+		case UTraverseComponent::PRESENT:
+		{
+			if (actor->ActorHasTag(FName("Present")))
+			{
+				for (auto* component : actor->GetComponents())
+				{
+					auto* prim = Cast<UPrimitiveComponent>(component);
+					if (!prim)
+						continue;
+
+					prim->SetCollisionResponseToAllChannels(ECR_Block);
+				}
+			}
+			else
+			{
+				for (auto* component : actor->GetComponents())
+				{
+					auto* prim = Cast<UPrimitiveComponent>(component);
+					if (!prim)
+						continue;
+
+					prim->SetCollisionResponseToAllChannels(ECR_Overlap);
+				}
+			}
+		}
+		default:
+			break;
+		}
+	}
+}
+
+void UClockComponent::SwapTaggedActors()
+{
+	switch (traverse_component_->GetCurrentDimension())
+	{
+	case UTraverseComponent::PAST:
+	{
+		for (auto* actor : tagged_actors_)
+		{
+			if (actor->ActorHasTag(FName("Past")))
+			{
+				if (player_->GetDistanceTo(clock_) <= clock_length_)
+					ToggleObjectsInClock(tagged_actors_, true, ECR_Overlap);
+				else
+					ToggleObjectsInClock(tagged_actors_, true, ECR_Block);
+			}
+			else
+			{
+				if (player_->GetDistanceTo(clock_) <= clock_length_)
+					ToggleObjectsInClock(tagged_actors_, true, ECR_Block);
+				else
+					ToggleObjectsInClock(tagged_actors_, true, ECR_Overlap);
+			}
+		}
+	}
+
+	case UTraverseComponent::PRESENT:
+	{
+		for (auto* actor : tagged_actors_)
+		{
+			if (actor->ActorHasTag(FName("Present")))
+			{
+				if (player_->GetDistanceTo(clock_) <= clock_length_)
+					ToggleObjectsInClock(tagged_actors_, true, ECR_Overlap);
+				else
+					ToggleObjectsInClock(tagged_actors_, true, ECR_Block);
+			}
+			else
+			{
+				if (player_->GetDistanceTo(clock_) <= clock_length_)
+					ToggleObjectsInClock(tagged_actors_, true, ECR_Block);
+				else
+					ToggleObjectsInClock(tagged_actors_, true, ECR_Overlap);
+			}
+		}
+	}
+	default:
+		break;
+	}
 }
 
 void UClockComponent::SetupClock()
@@ -177,7 +300,7 @@ bool UClockComponent::LineTrace(OUT FHitResult& result) const
 	return true;
 }
 
-void UClockComponent::ToggleObjectsInClock(TSet<AActor*> actor_set)
+void UClockComponent::ToggleObjectsInClock(TSet<AActor*> actor_set, bool force, ECollisionResponse response)
 {
 	for (auto* actor : actor_set)
 	{
@@ -190,7 +313,11 @@ void UClockComponent::ToggleObjectsInClock(TSet<AActor*> actor_set)
 			if (!prim)
 				continue;
 
-			prim->SetCollisionResponseToAllChannels(prim->GetCollisionResponseToChannel(ECC_WorldDynamic) == ECR_Block ? ECR_Overlap : ECR_Block);
+			if (force)
+				prim->SetCollisionResponseToAllChannels(response);
+			else
+				prim->SetCollisionResponseToAllChannels(prim->GetCollisionResponseToChannel(ECC_WorldDynamic) == ECR_Block ? ECR_Overlap : ECR_Block);
+
 			component->OnActorEnableCollisionChanged();
 
 			break;
@@ -256,7 +383,7 @@ bool UClockComponent::StopShader(FTraverseShader shader)
 	return true;
 }
 
-bool UClockComponent::GetOverlappingActors(TSet<AActor*>& out_actors, TSubclassOf<AActor> filter) const
+bool UClockComponent::GetOverlappingActors(TSet<AActor*>& out_actors, TSubclassOf<AActor> filter, const FName& optional_tag) const
 {
 	TSet<UActorComponent*> clock_components = clock_->GetComponents();
 	for (auto* component : clock_components)
@@ -266,16 +393,33 @@ bool UClockComponent::GetOverlappingActors(TSet<AActor*>& out_actors, TSubclassO
 
 		if (component->ComponentHasTag("Mesh"))
 		{
-			//auto* collision = Cast<USphereComponent>(component);
 			auto* mesh = Cast<UStaticMeshComponent>(component);
 			mesh->GetOverlappingActors(out_actors, filter);
-			//collision->GetOverlappingActors(out_actors, filter);
 
 			// Remove specific actors from array if they exist
 			if (out_actors.Contains(GetOwner()))
 				out_actors.Remove(GetOwner());
 			if (out_actors.Contains(clock_))
 				out_actors.Remove(clock_);
+
+			UE_LOG(LogTemp, Warning, TEXT("%i"), out_actors.Num());
+
+			// If an optional tag is set, remove overlapped actors without that tag
+			if (optional_tag.Compare(FName("")) != 0)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%s"), *optional_tag.ToString());
+				TSet<AActor*> actors_to_remove;
+				for (auto* actor : out_actors)
+				{
+					if (!actor->ActorHasTag(optional_tag))
+						actors_to_remove.Add(actor);
+				}
+				for (auto* actor : actors_to_remove)
+				{
+					if (out_actors.Contains(actor))
+						out_actors.Remove(actor);
+				}
+			}
 
 			return true;
 		}
@@ -380,4 +524,3 @@ void UClockComponent::TimelineEndCB()
 		has_reversed_ = false;
 	}
 }
-

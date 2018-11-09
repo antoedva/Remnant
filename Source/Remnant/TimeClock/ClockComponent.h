@@ -49,6 +49,10 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Clock")
 	float throw_distance_ = 1000.0f;
 
+	// THIS FUNCTION IS UGLY!!
+	void ResetTaggedActors();
+	void SwapTaggedActors();
+
 	// Is only used to get the length of the clock in BeginPlay
 	void SetupClock();
 
@@ -61,11 +65,12 @@ private:
 	float outline_strength_;
 
 	TSet<AActor*> current_actors_in_clock_;
-	void ToggleObjectsInClock(TSet<AActor*> actor_set);
-	bool GetOverlappingActors(TSet<AActor*>& out_actors, TSubclassOf<AActor> filter = nullptr) const;
+	void ToggleObjectsInClock(TSet<AActor*> actor_set, bool force = false, ECollisionResponse response = ECollisionResponse::ECR_Block);
+	bool GetOverlappingActors(TSet<AActor*>& out_actors, TSubclassOf<AActor> filter = nullptr, const FName& optional_tag = FName("")) const;
 
 	TSet<AActor*> actors_to_freeze_;
 	void ToggleFrozenActors();
+	TSet<AActor*> tagged_actors_;
 
 	UTraverseComponent* traverse_component_;
 
