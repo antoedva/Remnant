@@ -12,6 +12,7 @@
 #include "FPPlayerController.h"
 #include "PuzzleSystem/Actors/PickUpActor.h"
 #include "PuzzleSystem/Actors/TriggerReceiverActor.h"
+#include "PuzzleSystem/Actors/Triggers/LockedInteractableTriggerActor.h"
 
 UInteractComponent::UInteractComponent()
 {
@@ -46,6 +47,13 @@ void UInteractComponent::TickingRaycast()
 		{
 			currentHitActor = hitResult.GetActor();
 
+			auto* lita = Cast<ALockedInteractableTriggerActor>(currentHitActor);
+			if (lita)
+			{
+				if (Cast<AFP_Character>(GetOwner())->GetInventoryComponent()->HasItem(lita->GetRequiredItem()))
+					lita->on_look_at_.Broadcast();
+			}
+
 			UInGameUI* ui = Cast<AFPPlayerController>(GetWorld()->GetFirstPlayerController())->inGameUI;
 			if (ui)
 			{
@@ -78,7 +86,13 @@ void UInteractComponent::TickingRaycast()
 		{
 			APickUpActor* pickupActor = Cast<APickUpActor>(currentHitActor);
 			auto* trigger = Cast<AInteractableActorBase>(currentHitActor);
-			currentHitActor = nullptr;
+
+			if(auto* lita = Cast<ALockedInteractableTriggerActor>(currentHitActor))
+			if (lita)
+			{
+				if (Cast<AFP_Character>(GetOwner())->GetInventoryComponent()->HasItem(lita->GetRequiredItem()))
+					lita->on_look_away_.Broadcast();
+			}
 
 			UInGameUI* ui = Cast<AFPPlayerController>(GetWorld()->GetFirstPlayerController())->inGameUI;
 			if (ui)
@@ -100,6 +114,8 @@ void UInteractComponent::TickingRaycast()
 					else if (trigger)
 						ToggleHighlight(trigger);
 				}
+
+				currentHitActor = nullptr;
 			}
 		}
 	}
