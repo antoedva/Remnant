@@ -46,10 +46,13 @@ void UInteractComponent::TickingRaycast()
 		if (!currentHitActor)
 		{
 			currentHitActor = hitResult.GetActor();
-			
+
 			auto* lita = Cast<ALockedInteractableTriggerActor>(currentHitActor);
 			if (lita)
-				lita->on_look_at_.Broadcast();
+			{
+				if (Cast<AFP_Character>(GetOwner())->GetInventoryComponent()->HasItem(lita->GetRequiredItem()))
+					lita->on_look_at_.Broadcast();
+			}
 
 			UInGameUI* ui = Cast<AFPPlayerController>(GetWorld()->GetFirstPlayerController())->inGameUI;
 			if (ui)
@@ -83,9 +86,13 @@ void UInteractComponent::TickingRaycast()
 		{
 			APickUpActor* pickupActor = Cast<APickUpActor>(currentHitActor);
 			auto* trigger = Cast<AInteractableActorBase>(currentHitActor);
-			auto* lita = Cast<ALockedInteractableTriggerActor>(currentHitActor);
+
+			if(auto* lita = Cast<ALockedInteractableTriggerActor>(currentHitActor))
 			if (lita)
-				lita->on_look_away_.Broadcast();
+			{
+				if (Cast<AFP_Character>(GetOwner())->GetInventoryComponent()->HasItem(lita->GetRequiredItem()))
+					lita->on_look_away_.Broadcast();
+			}
 
 			UInGameUI* ui = Cast<AFPPlayerController>(GetWorld()->GetFirstPlayerController())->inGameUI;
 			if (ui)

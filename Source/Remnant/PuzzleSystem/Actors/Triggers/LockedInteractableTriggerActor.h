@@ -20,7 +20,8 @@ public:
 	ALockedInteractableTriggerActor();
 
 	void InteractWith(UInventoryComponent* inventory) override;
-	
+	FString GetRequiredItem() const { return requiredItemToTrigger; }
+
 	UPROPERTY(BlueprintAssignable)
 	FOnLookAt on_look_at_;
 	UPROPERTY(BlueprintAssignable)
