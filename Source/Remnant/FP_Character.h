@@ -31,6 +31,7 @@ public:
 	UCameraComponent* GetCameraComponent() const { return camera_component_; }
 	UFUNCTION(BlueprintCallable)
 	UTraverseComponent* GetTraverseComponent() { return traverse_component_; }
+	UInventoryComponent* GetInventoryComponent() const { return inventoryComponent; }
 
 	UPROPERTY(BlueprintReadWrite)
 	bool watchEnabled;

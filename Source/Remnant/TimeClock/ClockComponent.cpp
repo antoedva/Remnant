@@ -6,6 +6,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 
 #include "DrawDebugHelpers.h"
@@ -313,10 +314,16 @@ void UClockComponent::ToggleObjectsInClock(TSet<AActor*> actor_set, bool force, 
 			if (!prim)
 				continue;
 
-			if (force)
-				prim->SetCollisionResponseToAllChannels(response);
+			if (prim->IsA(UBoxComponent::StaticClass()) || prim->IsA(USphereComponent::StaticClass()))
+				prim->SetCollisionResponseToAllChannels(prim->GetCollisionResponseToChannel(ECC_WorldDynamic) == ECR_Overlap ? ECR_Ignore : ECR_Overlap);
+
 			else
-				prim->SetCollisionResponseToAllChannels(prim->GetCollisionResponseToChannel(ECC_WorldDynamic) == ECR_Block ? ECR_Overlap : ECR_Block);
+			{
+				if (force)
+					prim->SetCollisionResponseToAllChannels(response);
+				else
+					prim->SetCollisionResponseToAllChannels(prim->GetCollisionResponseToChannel(ECC_WorldDynamic) == ECR_Block ? ECR_Overlap : ECR_Block);
+			}
 
 			component->OnActorEnableCollisionChanged();
 
