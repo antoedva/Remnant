@@ -87,7 +87,7 @@ void UInteractComponent::TickingRaycast()
 			APickUpActor* pickupActor = Cast<APickUpActor>(currentHitActor);
 			auto* trigger = Cast<AInteractableActorBase>(currentHitActor);
 
-			if(auto* lita = Cast<ALockedInteractableTriggerActor>(currentHitActor))
+			auto* lita = Cast<ALockedInteractableTriggerActor>(currentHitActor);
 			if (lita)
 			{
 				if (Cast<AFP_Character>(GetOwner())->GetInventoryComponent()->HasItem(lita->GetRequiredItem()))
