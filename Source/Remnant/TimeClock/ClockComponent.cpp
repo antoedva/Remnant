@@ -65,6 +65,8 @@ bool UClockComponent::ThrowClock()
 	StartShader(traverse_component_->GetTraverseShader());
 	timeline_.PlayFromStart();
 
+	on_clock_placed_.Broadcast();
+
 	return true;
 }
 
@@ -94,6 +96,7 @@ bool UClockComponent::PickUpClock(const bool ignore_linetrace)
 
 	timeline_.Reverse();
 	has_reversed_ = true;
+	on_clock_picked_up_.Broadcast();
 
 	return true;
 }
