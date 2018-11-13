@@ -9,6 +9,9 @@
 
 #include "ClockComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnClockPlaced);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnClockPickedUp);
+
 class UStaticMeshComponent;
 class AFP_Character;
 class UTraverseComponent;
@@ -32,6 +35,11 @@ protected:
 	void TickComponent(float delta_time, ELevelTick tick_type, FActorComponentTickFunction* this_tick_function) override;
 
 private:
+	UPROPERTY(BlueprintAssignable)
+	FOnClockPlaced on_clock_placed_;
+	UPROPERTY(BlueprintAssignable)
+	FOnClockPickedUp on_clock_picked_up_;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Clock")
 	TSubclassOf<AActor> clock_bp_;
 
