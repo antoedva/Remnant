@@ -65,6 +65,8 @@ bool UClockComponent::ThrowClock()
 	StartShader(traverse_component_->GetTraverseShader());
 	timeline_.PlayFromStart();
 
+	on_clock_placed_.Broadcast();
+
 	return true;
 }
 
@@ -94,6 +96,7 @@ bool UClockComponent::PickUpClock(const bool ignore_linetrace)
 
 	timeline_.Reverse();
 	has_reversed_ = true;
+	on_clock_picked_up_.Broadcast();
 
 	return true;
 }
@@ -306,7 +309,9 @@ void UClockComponent::ToggleObjectsInClock(TSet<AActor*> actor_set, bool force, 
 	for (auto* actor : actor_set)
 	{
 		if (!actor)
-			return;
+			continue;;
+		if (actor->ActorHasTag("Pickupable"))
+			continue;
 
 		for (auto* component : actor->GetComponents())
 		{
@@ -409,12 +414,9 @@ bool UClockComponent::GetOverlappingActors(TSet<AActor*>& out_actors, TSubclassO
 			if (out_actors.Contains(clock_))
 				out_actors.Remove(clock_);
 
-			UE_LOG(LogTemp, Warning, TEXT("%i"), out_actors.Num());
-
 			// If an optional tag is set, remove overlapped actors without that tag
 			if (optional_tag.Compare(FName("")) != 0)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("%s"), *optional_tag.ToString());
 				TSet<AActor*> actors_to_remove;
 				for (auto* actor : out_actors)
 				{
