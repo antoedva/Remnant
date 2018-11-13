@@ -306,7 +306,9 @@ void UClockComponent::ToggleObjectsInClock(TSet<AActor*> actor_set, bool force, 
 	for (auto* actor : actor_set)
 	{
 		if (!actor)
-			return;
+			continue;;
+		if (actor->ActorHasTag("Pickupable"))
+			continue;
 
 		for (auto* component : actor->GetComponents())
 		{
