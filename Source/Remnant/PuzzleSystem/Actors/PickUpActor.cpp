@@ -29,5 +29,6 @@ void APickUpActor::InteractWith(UInventoryComponent* inventory)
 		}
 	}
 
-	Destroy();
+	SetActorHiddenInGame(true);
+	SetActorLocation(FVector(0.0f));
 }

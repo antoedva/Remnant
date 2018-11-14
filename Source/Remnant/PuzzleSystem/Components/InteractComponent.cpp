@@ -134,6 +134,7 @@ bool UInteractComponent::AttemptInteract()
 		if (cachedInventoryComponent)
 		{
 			interactableActor->InteractWith(cachedInventoryComponent);
+			
 			return true;
 		}
 		else
