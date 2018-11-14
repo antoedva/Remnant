@@ -9,6 +9,8 @@
 
 class UInventoryComponent;
 class UInGameUI;
+class UAudioComponent;
+class USoundBase;
 
 UCLASS()
 class REMNANT_API APickUpActor : public AInteractableActorBase
@@ -30,10 +32,15 @@ protected:
 
 private:
 
+	UAudioComponent* audioComponent;
+
 	UPROPERTY(EditAnywhere)
 	FString itemName;
 
 	UPROPERTY(EditAnywhere)
 	FSlateBrush brush;
+
+	UPROPERTY(EditAnywhere)
+	USoundBase* soundClip;
 
 };
