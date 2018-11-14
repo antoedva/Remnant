@@ -22,8 +22,9 @@
 #include "UObject/ConstructorHelpers.h"
 
 AFP_Character::AFP_Character()
-: watchEnabled(false)
-, timeSphereEnabled(false)
+	: watchEnabled(false)
+	, timeSphereEnabled(false)
+	, clock_grounded_(false)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -83,7 +84,7 @@ void AFP_Character::SetupPlayerInputComponent(UInputComponent* input_component)
 
 	// Specific input
 	input_component->BindAction("Traverse", IE_Pressed, this, &AFP_Character::TraverseDimension);
-	input_component->BindAction("PlaceClock", IE_Pressed, this, &AFP_Character::PlaceClock);
+	input_component->BindAction("UseClock", IE_Pressed, this, &AFP_Character::UseClock);
 	input_component->BindAction("Interact", IE_Pressed, this, &AFP_Character::Interact);
 	input_component->BindAction("LiftObject", IE_Pressed, this, &AFP_Character::LiftObject);
 	input_component->BindAction("ReleaseObject", IE_Released, this, &AFP_Character::ReleaseObject);
@@ -120,11 +121,6 @@ void AFP_Character::TraverseDimension()
 
 void AFP_Character::PlaceClock()
 {
-	if (!developmentMode && !timeSphereEnabled)
-	{
-		return;
-	}
-
 	// Do this here as well to not mess up the shader
 	if (!traverse_allowed_)
 		return;
@@ -138,15 +134,11 @@ void AFP_Character::PlaceClock()
 
 	tm.SetTimer(clock_timer_handle_, this, &AFP_Character::ClockTimerEndCB, clock_timer_, false);
 	traverse_allowed_ = false;
+	clock_grounded_ = true;
 }
 
 void AFP_Character::PickupClock()
 {
-	if (!developmentMode && !timeSphereEnabled)
-	{
-		return;
-	}
-
 	auto& tm = GetWorld()->GetTimerManager();
 	if (!clock_timer_handle_.IsValid())
 		return;
@@ -154,15 +146,23 @@ void AFP_Character::PickupClock()
 	clock_component_->PickUpClock(true);
 	GetWorld()->GetTimerManager().ClearTimer(clock_timer_handle_);
 	traverse_allowed_ = true;
+	clock_grounded_ = false;
+}
+
+void AFP_Character::UseClock()
+{
+	if (!developmentMode && !timeSphereEnabled)
+		return;
+
+	if (!clock_grounded_)
+		PlaceClock();
+	else
+		PickupClock();
 }
 
 void AFP_Character::Interact()
 {
-	// Return if the interact was successful
-	if (interactComponent->AttemptInteract())
-		return;
-
-	PickupClock();
+	interactComponent->AttemptInteract();
 }
 
 void AFP_Character::LiftObject()
@@ -181,11 +181,11 @@ void AFP_Character::LiftObject()
 		return;
 
 	actor_to_lift_ = result.GetActor();
-	
+
 	for (auto* component : actor_to_lift_->GetComponents())
 	{
 		auto* prim = Cast<UPrimitiveComponent>(component);
-		if(!prim)
+		if (!prim)
 			continue;
 
 		prim->SetSimulatePhysics(false);

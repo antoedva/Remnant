@@ -44,6 +44,7 @@ protected:
 	void TraverseDimension();
 	void PlaceClock();
 	void PickupClock();
+	void UseClock();
 	void Interact();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera")
@@ -64,6 +65,7 @@ private:
 	FTimerHandle clock_timer_handle_;
 	UFUNCTION()
 	void ClockTimerEndCB() { PickupClock(); }
+	bool clock_grounded_;
 	
 	bool traverse_allowed_ = true;
 	UPROPERTY(EditDefaultsOnly, Category = "Traverse")
