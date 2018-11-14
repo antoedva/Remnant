@@ -9,6 +9,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLookAway);
 
 class UTriggerComponent;
 class UInventoryComponent;
+class UAudioComponent;
+class USoundBase;
 
 UCLASS()
 class REMNANT_API ALockedInteractableTriggerActor : public AInteractableActorBase
@@ -35,8 +37,12 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	UTriggerComponent* triggerComponent;
+	UAudioComponent* audioComponent;
 
 	UPROPERTY(EditAnywhere)
 	FString requiredItemToTrigger;
+
+	UPROPERTY(EditAnywhere)
+	USoundBase* soundClip;
 
 };
