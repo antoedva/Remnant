@@ -372,6 +372,9 @@ bool UTraverseComponent::ChangeActorCollision(const bool ignore_distance)
 						if(component->IsA(UBoxComponent::StaticClass()))
 							continue;
 
+						if(actor->ActorHasTag("Pickupable"))
+							primitive_comp->SetSimulatePhysics(!primitive_comp->BodyInstance.bSimulatePhysics);
+
 						// For some reason, I can't just do a simple block ? overlap : block, because the getter for the collisionresponse is stupid, oh well
 						switch (dimension_)
 						{
