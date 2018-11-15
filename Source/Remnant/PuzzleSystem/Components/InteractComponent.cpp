@@ -64,12 +64,18 @@ void UInteractComponent::TickingRaycast()
 
 				if (ui->pickupText)
 				{
+					if (currentHitActor->ActorHasTag("Tooltip"))
+					{
+						const FText text = FText::FromString(FString("Press E to interact"));
+						ui->pickupText->SetText(text);
+					}
+
 					APickUpActor* pickupActor = Cast<APickUpActor>(currentHitActor);
 					auto* trigger = Cast<AInteractableActorBase>(currentHitActor);
 
 					if (pickupActor)
 					{
-						FText pickupText = FText::FromString(pickupActor->GetName());
+						const FText pickupText = FText::FromString(pickupActor->GetName());
 						ui->pickupText->SetText(pickupText);
 
 						ToggleHighlight(pickupActor);
@@ -104,13 +110,15 @@ void UInteractComponent::TickingRaycast()
 
 				if (ui->pickupText)
 				{
-					if (pickupActor)
+					// Don't change the text to "" if we recently tried to use an unusable item
+					if (ui->pickupText->GetText().CompareTo(FText::FromString("Missing required item")) != 0)
 					{
 						FText pickupText = FText::FromString("");
 						ui->pickupText->SetText(pickupText);
-
-						ToggleHighlight(pickupActor);
 					}
+
+					if (pickupActor)
+						ToggleHighlight(pickupActor);
 					else if (trigger)
 						ToggleHighlight(trigger);
 				}
@@ -133,8 +141,8 @@ bool UInteractComponent::AttemptInteract()
 	{
 		if (cachedInventoryComponent)
 		{
+			currentHitActor = nullptr;
 			interactableActor->InteractWith(cachedInventoryComponent);
-			
 			return true;
 		}
 		else

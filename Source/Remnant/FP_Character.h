@@ -33,9 +33,14 @@ public:
 	UTraverseComponent* GetTraverseComponent() { return traverse_component_; }
 	UInventoryComponent* GetInventoryComponent() const { return inventoryComponent; }
 
-	UPROPERTY(BlueprintReadWrite)
+	UFUNCTION(BlueprintCallable)
+	void EnableWatchPickup();
+	UFUNCTION(BlueprintCallable)
+	void EnableTimeSpherePickup();
+
+	UPROPERTY(BlueprintReadOnly)
 	bool watchEnabled;
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadOnly)
 	bool timeSphereEnabled;
 
 protected:
