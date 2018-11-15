@@ -41,24 +41,24 @@ private:
 	USoundBase* footRightSound;
 
 	UPROPERTY(EditAnywhere)
-	float velocityRequiredToConsideredMoving;
+	float velocityRequiredToConsideredMoving = 200.0f;
 
 	UPROPERTY(EditAnywhere)
-	float timeBetweenFootsteps;
+	float timeBetweenFootsteps = 0.605f;
 
 	UPROPERTY(EditAnywhere)
-	float timeToFirstFootstepAfterStopping;
+	float timeToFirstFootstepAfterStopping = 0.3f;
 
 	bool firstStepAfterStopping;
 
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
-	float footstepsVolume;
+	float footstepsVolume = 0.25f;
 
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", ClampMax = "2.0", UIMin = "0.0", UIMax = "2.0"))
-	float pitchMultiplierMin;
+	float pitchMultiplierMin = 0.9825f;
 
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", ClampMax = "2.0", UIMin = "0.0", UIMax = "2.0"))
-	float pitchMultiplierMax;
+	float pitchMultiplierMax = 1.0175f;
 
 	bool isNextFootLeft;
 	float elapsedSinceFootstep;
