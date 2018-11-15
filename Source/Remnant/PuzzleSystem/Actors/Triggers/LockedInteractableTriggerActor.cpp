@@ -30,10 +30,7 @@ void ALockedInteractableTriggerActor::InteractWith(UInventoryComponent* inventor
 	}
 	else
 	{
-		// TO DO
-		// Send an event - "Missing required item."
-		// Could be used for a voiceline, locked item sfx, a ui feedback or something else
-		UE_LOG(LogTemp, Warning, TEXT("Missing required item"));
+		inventory->DisplayPickedUpItem(FString("Missing required item"));
 		audioComponent->Play();
 	}
 }
