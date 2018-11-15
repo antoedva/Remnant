@@ -31,6 +31,7 @@ void ALockedInteractableTriggerActor::InteractWith(UInventoryComponent* inventor
 	}
 	else
 	{
+		inventory->DisplayPickedUpItem(FString("Missing required item"));
 		audioComponent->Play();
 	}
 }
