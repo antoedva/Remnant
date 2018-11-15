@@ -129,7 +129,5 @@ void UFootstepsComponent::PlayFootstepSound(USoundBase* footstepToPlay)
 	const FVector playerLocation = characterMovement->GetOwner()->GetTransform().GetLocation();
 	const float pitch = FMath::RandRange(pitchMultiplierMin, pitchMultiplierMax);
 
-	UE_LOG(LogTemp, Warning, TEXT("%f"), pitch);
-
 	UGameplayStatics::PlaySoundAtLocation(world, footstepToPlay, playerLocation, footstepsVolume, pitch, 0.0f);
 }
