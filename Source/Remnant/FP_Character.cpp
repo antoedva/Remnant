@@ -22,11 +22,15 @@
 #include "Audio/FootstepsComponent.h"
 
 #include "UObject/ConstructorHelpers.h"
+#include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/CameraShake.h"
 
 AFP_Character::AFP_Character()
 	: watchEnabled(false)
 	, timeSphereEnabled(false)
 	, clock_grounded_(false)
+	, headBob(nullptr)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -103,6 +107,14 @@ void AFP_Character::SetupPlayerInputComponent(UInputComponent* input_component)
 	input_component->BindAction("Interact", IE_Pressed, this, &AFP_Character::Interact);
 	input_component->BindAction("LiftObject", IE_Pressed, this, &AFP_Character::LiftObject);
 	input_component->BindAction("ReleaseObject", IE_Released, this, &AFP_Character::ReleaseObject);
+}
+
+void AFP_Character::DoHeadBob()
+{
+	if (headBob != nullptr)
+	{
+		GetWorld()->GetFirstPlayerController()->PlayerCameraManager->PlayCameraShake(headBob, 1.0f);
+	}
 }
 
 void AFP_Character::MoveForward(float value)
