@@ -45,4 +45,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	USoundBase* soundClip;
 
+	UPROPERTY(EditAnywhere)
+	float volumeMultiplier;
+
 };
