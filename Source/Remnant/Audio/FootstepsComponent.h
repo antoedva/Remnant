@@ -20,8 +20,6 @@ public:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	void SetMovementComponent(UCharacterMovementComponent* newCharacterComponent) { characterMovement = newCharacterComponent; }
-
 protected:
 
 	virtual void BeginPlay() override;
@@ -47,10 +45,22 @@ private:
 	UPROPERTY(EditAnywhere)
 	float timeBetweenFootsteps;
 
+	UPROPERTY(EditAnywhere)
+	float timeToFirstFootstepAfterStopping;
+
+	bool firstStepAfterStopping;
+
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
+	float footstepsVolume;
+
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", ClampMax = "2.0", UIMin = "0.0", UIMax = "2.0"))
+	float pitchMultiplierMin;
+
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0.0", ClampMax = "2.0", UIMin = "0.0", UIMax = "2.0"))
+	float pitchMultiplierMax;
+
 	bool isNextFootLeft;
 	float elapsedSinceFootstep;
 
 	UWorld* world;
-
-	AActor* playerActor;
 };

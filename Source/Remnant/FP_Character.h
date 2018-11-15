@@ -61,7 +61,7 @@ private:
 
 	UInventoryComponent* inventoryComponent;
 
-	UPROPERTY(EditAnyhwere)
+	UPROPERTY(EditAnywhere)
 	UFootstepsComponent* footstepsComponent;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Clock")

@@ -56,8 +56,6 @@ AFP_Character::AFP_Character()
 void AFP_Character::BeginPlay()
 {
 	Super::BeginPlay();
-
-	footstepsComponent->SetMovementComponent(movement_component_);
 }
 
 void AFP_Character::Tick(float deltaTime)

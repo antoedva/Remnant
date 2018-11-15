@@ -11,7 +11,6 @@ UFootstepsComponent::UFootstepsComponent()
 , footRightSound(nullptr)
 , characterMovement(nullptr)
 , world(nullptr)
-, playerActor(nullptr)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 
@@ -23,7 +22,7 @@ void UFootstepsComponent::BeginPlay()
 	Super::BeginPlay();
 
 	world = GetWorld();
-	playerActor = characterMovement->GetOwner();
+	firstStepAfterStopping = true;
 }
 
 void UFootstepsComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -40,6 +39,7 @@ void UFootstepsComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	{
 		elapsedSinceFootstep = 0.0f;
 		isNextFootLeft = true;
+		firstStepAfterStopping = true;
 	}
 }
 
@@ -47,19 +47,28 @@ bool UFootstepsComponent::IsPlayerMoving()
 {
 	if (characterMovement == nullptr)
 	{
-		UE_LOG(LogTemp, Error, TEXT("characterMovement pointer in FootstepsComponent is nullptr"));
-		return false;
+		characterMovement = GetOwner()->FindComponentByClass<UCharacterMovementComponent>();
+		if (characterMovement == nullptr)
+		{
+			UE_LOG(LogTemp, Error, TEXT("characterMovement pointer in FootstepsComponent is nullptr"));
+			return false;
+		}
 	}
 
-	return (characterMovement->Velocity.Size() >= velocityRequiredToConsideredMoving);
+	const float velocity = characterMovement->Velocity.Size();
+	return (velocity >= velocityRequiredToConsideredMoving);
 }
 
 bool UFootstepsComponent::IsPlayerGrounded()
 {
 	if (characterMovement == nullptr)
 	{
-		UE_LOG(LogTemp, Error, TEXT("characterMovement pointer in FootstepsComponent is nullptr"));
-		return false;
+		characterMovement = GetOwner()->FindComponentByClass<UCharacterMovementComponent>();
+		if (characterMovement == nullptr)
+		{
+			UE_LOG(LogTemp, Error, TEXT("characterMovement pointer in FootstepsComponent is nullptr"));
+			return false;
+		}
 	}
 
 	return !characterMovement->IsFalling();
@@ -67,7 +76,18 @@ bool UFootstepsComponent::IsPlayerGrounded()
 
 void UFootstepsComponent::HandleFootsteps()
 {
-	if (elapsedSinceFootstep >= timeBetweenFootsteps)
+	float actualTimeBetweenFootsteps;
+
+	if (firstStepAfterStopping)
+	{
+		actualTimeBetweenFootsteps = timeToFirstFootstepAfterStopping;
+	}
+	else
+	{
+		actualTimeBetweenFootsteps = timeBetweenFootsteps;
+	}
+
+	if (elapsedSinceFootstep >= actualTimeBetweenFootsteps)
 	{
 		if (isNextFootLeft)
 		{
@@ -80,14 +100,22 @@ void UFootstepsComponent::HandleFootsteps()
 
 		isNextFootLeft = !isNextFootLeft;
 		elapsedSinceFootstep = 0.0f;
+		firstStepAfterStopping = false;
 	}
 }
 
 void UFootstepsComponent::PlayFootstepSound(USoundBase* footstepToPlay)
 {
-	if (footRightSound == nullptr)
+	characterMovement = GetOwner()->FindComponentByClass<UCharacterMovementComponent>();
+	if (characterMovement == nullptr)
 	{
-		UE_LOG(LogTemp, Error, TEXT("footRightSound pointer in FootstepsComponent is nullptr"));
+		UE_LOG(LogTemp, Error, TEXT("characterMovement pointer in FootstepsComponent is nullptr"));
+		return;
+	}
+
+	if (footstepToPlay == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("footstepToPlay pointer in FootstepsComponent is nullptr, can be either left or right"));
 		return;
 	}
 
@@ -97,12 +125,11 @@ void UFootstepsComponent::PlayFootstepSound(USoundBase* footstepToPlay)
 		return;
 	}
 
-	if (playerActor == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("playerActor pointer in FootstepsComponent is nullptr"));
-		return;
-	}
+	// I want to cache this below, but Unreal is weird :S
+	const FVector playerLocation = characterMovement->GetOwner()->GetTransform().GetLocation();
+	const float pitch = FMath::RandRange(pitchMultiplierMin, pitchMultiplierMax);
 
-	FVector playerLocation = playerActor->GetTransform().GetLocation();
-	UGameplayStatics::PlaySoundAtLocation(world, footstepToPlay, playerLocation);
+	UE_LOG(LogTemp, Warning, TEXT("%f"), pitch);
+
+	UGameplayStatics::PlaySoundAtLocation(world, footstepToPlay, playerLocation, footstepsVolume, pitch, 0.0f);
 }
