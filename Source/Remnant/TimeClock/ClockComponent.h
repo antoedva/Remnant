@@ -9,7 +9,7 @@
 
 #include "ClockComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnClockPlaced);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClockPlaced, FVector, spawn_location);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnClockPickedUp);
 
 class UStaticMeshComponent;
