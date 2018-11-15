@@ -14,6 +14,7 @@ class UClockComponent;
 class UInteractComponent;
 class UInventoryComponent;
 class UFootstepsComponent;
+class UCameraShake;
 struct FTimerHandle;
 
 UCLASS(config = Game)
@@ -33,6 +34,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UTraverseComponent* GetTraverseComponent() { return traverse_component_; }
 	UInventoryComponent* GetInventoryComponent() const { return inventoryComponent; }
+
+	void DoHeadBob();
 
 	UPROPERTY(BlueprintReadWrite)
 	bool watchEnabled;
@@ -63,6 +66,9 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	UFootstepsComponent* footstepsComponent;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UCameraShake> headBob;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Clock")
 	float clock_timer_ = 10.0f;
