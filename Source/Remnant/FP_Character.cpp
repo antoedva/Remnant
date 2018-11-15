@@ -72,6 +72,18 @@ void AFP_Character::Tick(float deltaTime)
 	}
 }
 
+void AFP_Character::EnableWatchPickup()
+{
+	watchEnabled = true;
+	inventoryComponent->DisplayPickedUpItem(FString("Press 'F' to traverse"));
+}
+
+void AFP_Character::EnableTimeSpherePickup()
+{
+	timeSphereEnabled = true;
+	inventoryComponent->DisplayPickedUpItem(FString("Press 'Q' to create a frozen time sphere of the opposite timeline"));
+}
+
 void AFP_Character::SetupPlayerInputComponent(UInputComponent* input_component)
 {
 	check(input_component);

@@ -15,7 +15,6 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnClockPickedUp);
 class UStaticMeshComponent;
 class AFP_Character;
 class UTraverseComponent;
-class UParticleSystem;
 class UMaterialParameterCollection;
 class UMaterialParameterCollectionInstance;
 
