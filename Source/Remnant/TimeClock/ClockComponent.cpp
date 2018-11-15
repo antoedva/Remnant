@@ -65,7 +65,7 @@ bool UClockComponent::ThrowClock()
 	StartShader(traverse_component_->GetTraverseShader());
 	timeline_.PlayFromStart();
 
-	on_clock_placed_.Broadcast();
+	on_clock_placed_.Broadcast(spawn_location_);
 
 	return true;
 }
