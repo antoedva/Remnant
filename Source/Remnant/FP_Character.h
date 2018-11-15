@@ -37,9 +37,14 @@ public:
 
 	void DoHeadBob();
 
-	UPROPERTY(BlueprintReadWrite)
+	UFUNCTION(BlueprintCallable)
+	void EnableWatchPickup();
+	UFUNCTION(BlueprintCallable)
+	void EnableTimeSpherePickup();
+
+	UPROPERTY(BlueprintReadOnly)
 	bool watchEnabled;
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadOnly)
 	bool timeSphereEnabled;
 
 protected:
