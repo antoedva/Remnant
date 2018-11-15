@@ -19,6 +19,8 @@
 #include "Traverser/TraverseComponent.h"
 #include "TimeClock/ClockComponent.h"
 
+#include "Audio/FootstepsComponent.h"
+
 #include "UObject/ConstructorHelpers.h"
 
 AFP_Character::AFP_Character()
@@ -47,12 +49,13 @@ AFP_Character::AFP_Character()
 	clock_component_ = CreateDefaultSubobject<UClockComponent>(TEXT("ClockComponent"));
 	interactComponent = CreateDefaultSubobject<UInteractComponent>(TEXT("InteractComponent"));
 	inventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
+
+	footstepsComponent = CreateDefaultSubobject<UFootstepsComponent>(TEXT("FootstepsComponent"));
 }
 
 void AFP_Character::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
 void AFP_Character::Tick(float deltaTime)
