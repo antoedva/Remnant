@@ -25,7 +25,7 @@ void UInventoryComponent::DisplayPickedUpItem(const FString& text)
 		return;
 	if (!ui->pickupText)
 		return;
-
+	
 	const FText displayed_text = FText::FromString(text);
 	ui->pickupText->SetText(displayed_text);
 

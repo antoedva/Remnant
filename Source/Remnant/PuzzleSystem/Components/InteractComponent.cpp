@@ -141,6 +141,10 @@ bool UInteractComponent::AttemptInteract()
 	{
 		if (cachedInventoryComponent)
 		{
+			auto* ch = Cast<AFPPlayerController>(GetWorld()->GetFirstPlayerController())->inGameUI->crosshairImage;
+			if (ch)
+				ch->SetOpacity(0.4f);
+
 			currentHitActor = nullptr;
 			interactableActor->InteractWith(cachedInventoryComponent);
 			return true;
