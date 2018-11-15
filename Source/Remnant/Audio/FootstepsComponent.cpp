@@ -5,12 +5,14 @@
 #include "Sound/SoundBase.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
+#include "FP_Character.h"
 
 UFootstepsComponent::UFootstepsComponent()
 : footLeftSound(nullptr)
 , footRightSound(nullptr)
 , characterMovement(nullptr)
 , world(nullptr)
+, playerActor(nullptr)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 
@@ -106,11 +108,14 @@ void UFootstepsComponent::HandleFootsteps()
 
 void UFootstepsComponent::PlayFootstepSound(USoundBase* footstepToPlay)
 {
-	characterMovement = GetOwner()->FindComponentByClass<UCharacterMovementComponent>();
 	if (characterMovement == nullptr)
 	{
-		UE_LOG(LogTemp, Error, TEXT("characterMovement pointer in FootstepsComponent is nullptr"));
-		return;
+		characterMovement = GetOwner()->FindComponentByClass<UCharacterMovementComponent>();
+		if (characterMovement == nullptr)
+		{
+			UE_LOG(LogTemp, Error, TEXT("characterMovement pointer in FootstepsComponent is nullptr"));
+			return;
+		}
 	}
 
 	if (footstepToPlay == nullptr)
@@ -125,11 +130,20 @@ void UFootstepsComponent::PlayFootstepSound(USoundBase* footstepToPlay)
 		return;
 	}
 
+	if (playerActor == nullptr)
+	{
+		playerActor = Cast<AFP_Character>(GetOwner());
+		if (playerActor == nullptr)
+		{
+			UE_LOG(LogTemp, Error, TEXT("playerActor pointer in FootstepsComponent is nullptr"));
+			return;
+		}
+	}
+
 	// I want to cache this below, but Unreal is weird :S
-	const FVector playerLocation = characterMovement->GetOwner()->GetTransform().GetLocation();
+	const FVector playerLocation = playerActor->GetTransform().GetLocation();
 	const float pitch = FMath::RandRange(pitchMultiplierMin, pitchMultiplierMax);
 
-	UE_LOG(LogTemp, Warning, TEXT("%f"), pitch);
-
 	UGameplayStatics::PlaySoundAtLocation(world, footstepToPlay, playerLocation, footstepsVolume, pitch, 0.0f);
+	playerActor->DoHeadBob();
 }
