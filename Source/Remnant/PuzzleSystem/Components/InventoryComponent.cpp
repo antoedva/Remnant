@@ -4,7 +4,9 @@
 #include "UI/InGameUI.h"
 #include "FPPlayerController.h"
 #include "Components/Image.h"
+#include "Components/TextBlock.h"
 #include "Styling/SlateBrush.h"
+#include "Public/TimerManager.h"
 
 UInventoryComponent::UInventoryComponent()
 {
@@ -14,6 +16,31 @@ UInventoryComponent::UInventoryComponent()
 void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+void UInventoryComponent::DisplayPickedUpItem(const FString& text)
+{
+	const UInGameUI* ui = Cast<AFPPlayerController>(GetWorld()->GetFirstPlayerController())->inGameUI;
+	if (!ui)
+		return;
+	if (!ui->pickupText)
+		return;
+	
+	const FText displayed_text = FText::FromString(text);
+	ui->pickupText->SetText(displayed_text);
+
+	auto& tm = GetWorld()->GetTimerManager();
+	tm.SetTimer(text_handle_, this, &UInventoryComponent::TextEndCB, text_duration_, false);
+}
+
+void UInventoryComponent::TextEndCB()
+{
+	const UInGameUI* ui = Cast<AFPPlayerController>(GetWorld()->GetFirstPlayerController())->inGameUI;
+	if (!ui)
+		return;
+
+	const FText text = FText::FromString("");
+	ui->pickupText->SetText(text);
 }
 
 bool UInventoryComponent::HasItem(const FString& itemName)
@@ -47,12 +74,15 @@ bool UInventoryComponent::HasItem(APickUpActor* pickUp)
 void UInventoryComponent::AddItem(APickUpActor* pickUp)
 {
 	item = pickUp;
-	UE_LOG(LogTemp, Warning, TEXT("%s added to inventory"), *item->GetName());
+
+	const FString text = FString("Picked up " + item->GetName());
+	DisplayPickedUpItem(text);
 }
 
 void UInventoryComponent::ResetInventory()
 {
-	UE_LOG(LogTemp, Warning, TEXT("%s used"), *item->GetName());
+	const FString text = FString("Used " + item->GetName());
+	DisplayPickedUpItem(text);
 
 	item->Destroy();
 	item = nullptr;

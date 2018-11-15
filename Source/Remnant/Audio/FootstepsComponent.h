@@ -8,6 +8,7 @@ class UCharacterMovementComponent;
 class USoundBase;
 class UWorld;
 class AActor;
+class AFP_Character;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class REMNANT_API UFootstepsComponent : public UActorComponent
@@ -63,4 +64,5 @@ private:
 	float elapsedSinceFootstep;
 
 	UWorld* world;
+	AFP_Character* playerActor;
 };
