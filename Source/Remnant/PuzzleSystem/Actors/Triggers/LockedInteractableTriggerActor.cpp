@@ -19,6 +19,7 @@ void ALockedInteractableTriggerActor::BeginPlay()
 	Super::BeginPlay();
 
 	audioComponent->SetSound(soundClip);
+	audioComponent->VolumeMultiplier = volumeMultiplier;
 }
 
 void ALockedInteractableTriggerActor::InteractWith(UInventoryComponent* inventory)
@@ -30,7 +31,6 @@ void ALockedInteractableTriggerActor::InteractWith(UInventoryComponent* inventor
 	}
 	else
 	{
-		inventory->DisplayPickedUpItem(FString("Missing required item"));
 		audioComponent->Play();
 	}
 }
