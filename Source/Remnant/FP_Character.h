@@ -13,6 +13,7 @@ class UTraverseComponent;
 class UClockComponent;
 class UInteractComponent;
 class UInventoryComponent;
+class UFootstepsComponent;
 struct FTimerHandle;
 
 UCLASS(config = Game)
@@ -59,6 +60,9 @@ private:
 	UInteractComponent* interactComponent;
 
 	UInventoryComponent* inventoryComponent;
+
+	UPROPERTY(EditAnyhwere)
+	UFootstepsComponent* footstepsComponent;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Clock")
 	float clock_timer_ = 10.0f;
